@@ -1,52 +1,60 @@
-//
-//  SceneDelegate.swift
-//  Tracker
-//
-//  Created by Виктор Воробьев on 02.04.2026.
-//
-
 import UIKit
 
 class SceneDelegate: UIResponder, UIWindowSceneDelegate {
-
+	
 	var window: UIWindow?
-
-
+	
+	
 	func scene(_ scene: UIScene, willConnectTo session: UISceneSession, options connectionOptions: UIScene.ConnectionOptions) {
 		guard let windowScene = (scene as? UIWindowScene) else { return }
-		window = UIWindow(windowScene: windowScene)
-		window.rootViewController = ViewController()
+		let window = UIWindow(windowScene: windowScene)
+		self.window = window
+		
+		let trackersVC = TrackersViewController()
+		let trackersNav = UINavigationController(rootViewController: trackersVC)
+		let statisticsVC = UIViewController()
+		statisticsVC.view.backgroundColor = .systemBackground
+		
+		trackersNav.tabBarItem = UITabBarItem(title: nil, image: UIImage(named: "Tab Bar Item"), tag: 0)
+		statisticsVC.tabBarItem = UITabBarItem(title: nil, image: UIImage(named: "Tab Bar Item2"), tag: 1)
+		
+		[trackersNav, statisticsVC].forEach {
+			$0.tabBarItem.imageInsets = UIEdgeInsets(top: 6, left: 0, bottom: -6, right: 0)
+		}
+		
+		let tabBar = UITabBarController()
+		
+		if #available(iOS 18.0, *) {
+			tabBar.tabBar.traitOverrides.horizontalSizeClass = .compact
+		}
+		
+		tabBar.tabBar.itemPositioning = .centered
+		tabBar.tabBar.itemSpacing = 114
+		
+		let appearance = UITabBarAppearance()
+		appearance.configureWithOpaqueBackground()
+		appearance.backgroundColor = UIColor(named: "YP White")
+		appearance.shadowColor = .clear
+		
+		appearance.stackedLayoutAppearance.normal.iconColor = UIColor(named: "YP Gray")
+		appearance.stackedLayoutAppearance.selected.iconColor = UIColor(named: "YP Blue")
+		
+		tabBar.tabBar.standardAppearance = appearance
+		if #available(iOS 15.0, *) {
+			tabBar.tabBar.scrollEdgeAppearance = appearance
+		}
+		
+		let topBorder = CALayer()
+		topBorder.frame = CGRect(x: 0, y: 0, width: window.frame.width, height: 0.5)
+		topBorder.backgroundColor = UIColor(named: "YP Gray")?.cgColor
+		tabBar.tabBar.layer.addSublayer(topBorder)
+		
+		tabBar.tabBar.isTranslucent = false
+		tabBar.tabBar.tintColor = UIColor(named: "YP Blue")
+		tabBar.tabBar.unselectedItemTintColor = UIColor(named: "YP Gray")
+		
+		tabBar.viewControllers = [trackersNav, statisticsVC]
+		window.rootViewController = tabBar
 		window.makeKeyAndVisible()
 	}
-
-	func sceneDidDisconnect(_ scene: UIScene) {
-		// Called as the scene is being released by the system.
-		// This occurs shortly after the scene enters the background, or when its session is discarded.
-		// Release any resources associated with this scene that can be re-created the next time the scene connects.
-		// The scene may re-connect later, as its session was not necessarily discarded (see `application:didDiscardSceneSessions` instead).
-	}
-
-	func sceneDidBecomeActive(_ scene: UIScene) {
-		// Called when the scene has moved from an inactive state to an active state.
-		// Use this method to restart any tasks that were paused (or not yet started) when the scene was inactive.
-	}
-
-	func sceneWillResignActive(_ scene: UIScene) {
-		// Called when the scene will move from an active state to an inactive state.
-		// This may occur due to temporary interruptions (ex. an incoming phone call).
-	}
-
-	func sceneWillEnterForeground(_ scene: UIScene) {
-		// Called as the scene transitions from the background to the foreground.
-		// Use this method to undo the changes made on entering the background.
-	}
-
-	func sceneDidEnterBackground(_ scene: UIScene) {
-		// Called as the scene transitions from the foreground to the background.
-		// Use this method to save data, release shared resources, and store enough scene-specific state information
-		// to restore the scene back to its current state.
-	}
-
-
 }
-
