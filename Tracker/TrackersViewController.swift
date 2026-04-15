@@ -34,6 +34,7 @@ final class TrackersViewController: UIViewController {
 		setupMockData()
 	}
 	
+	// MARK: - Setup UI
 	private func setupMockData() {
 		let plantTracker = Tracker(
 			id: UUID(),
@@ -52,7 +53,6 @@ final class TrackersViewController: UIViewController {
 		reloadVisibleCategories()
 	}
 	
-	// MARK: - Setup UI
 	private func setupCollectionView() {
 		view.addSubview(collectionView)
 		
@@ -86,10 +86,10 @@ final class TrackersViewController: UIViewController {
 		datePicker.locale = Locale(identifier: "ru_RU")
 		
 		let calendar = Calendar.current
-		  let minDate = calendar.date(byAdding: .year, value: -10, to: Date())
-		  let maxDate = calendar.date(byAdding: .year, value: 10, to: Date())
-		  datePicker.minimumDate = minDate
-		  datePicker.maximumDate = maxDate
+		let minDate = calendar.date(byAdding: .year, value: -10, to: Date())
+		let maxDate = calendar.date(byAdding: .year, value: 10, to: Date())
+		datePicker.minimumDate = minDate
+		datePicker.maximumDate = maxDate
 		
 		datePicker.addTarget(self, action: #selector(dateChanged(_:)), for: .valueChanged)
 		
@@ -149,9 +149,17 @@ final class TrackersViewController: UIViewController {
 	}
 	
 	private func reloadPlaceholder() {
-		let isHidden = !visibleCategories.isEmpty
-		placeholderImageView.isHidden = isHidden
-		placeholderLabel.isHidden = isHidden
+		let isSearchActive = !(navigationItem.searchController?.searchBar.text?.isEmpty ?? true)
+		
+		if visibleCategories.isEmpty {
+			placeholderImageView.isHidden = false
+			placeholderLabel.isHidden = false
+			placeholderImageView.image = isSearchActive ? UIImage(named: "Error") : UIImage(named: "Star")
+			placeholderLabel.text = isSearchActive ? "Ничего не найдено" : "Что будем отслеживать?"
+		} else {
+			placeholderImageView.isHidden = true
+			placeholderLabel.isHidden = true
+		}
 	}
 	
 	private func isTrackerCompletedToday(id: UUID) -> Bool {
@@ -174,12 +182,11 @@ final class TrackersViewController: UIViewController {
 	// MARK: - Actions
 	@objc private func didTapAddButton() {
 		let newHabitVC = NewHabitViewController()
-		   
-		   // Указываем, что главный экран (self) будет слушать ответ от экрана создания
-		   newHabitVC.delegate = self
-		   
-		   let navVC = UINavigationController(rootViewController: newHabitVC)
-		   present(navVC, animated: true)	}
+		
+		newHabitVC.delegate = self
+		
+		let navVC = UINavigationController(rootViewController: newHabitVC)
+		present(navVC, animated: true)	}
 	
 	@objc private func dateChanged(_ picker: UIDatePicker) {
 		currentDate = picker.date
@@ -246,35 +253,43 @@ extension TrackersViewController: UISearchResultsUpdating {
 // MARK: - TrackerCellDelegate
 extension TrackersViewController: TrackerCellDelegate {
 	func completeTracker(id: UUID, at indexPath: IndexPath) {
-		if currentDate > Date() { return }
+		let calendar = Calendar.current
+		if calendar.startOfDay(for: currentDate) > calendar.startOfDay(for: Date()) {
+			return
+		}
 		
 		if isTrackerCompletedToday(id: id) {
 			unmarkTrackerAsCompleted(id: id)
 		} else {
 			markTrackerAsCompleted(id: id)
 		}
+		
 		collectionView.reloadItems(at: [indexPath])
 	}
 }
-
 // MARK: - TrackersViewControllerDelegate
 extension TrackersViewController: TrackersViewControllerDelegate {
 	func didCreateTracker(_ tracker: Tracker) {
-		// 1. Создаем категорию (или ищем существующую)
-		let newCategoryTitle = "Важное"
+		let categoryTitle = "Важное"
 		
-		// 2. Обновляем данные (упрощенная логика добавления)
-		if let index = categories.firstIndex(where: { $0.title == newCategoryTitle }) {
-			let updatedTrackers = categories[index].trackers + [tracker]
-			let updatedCategory = TrackerCategory(title: newCategoryTitle, trackers: updatedTrackers)
-			categories[index] = updatedCategory
-		} else {
-			let newCategory = TrackerCategory(title: newCategoryTitle, trackers: [tracker])
-			categories.append(newCategory)
+		var newCategories: [TrackerCategory] = []
+		var categoryFound = false
+		
+		for category in categories {
+			if category.title == categoryTitle {
+				let updatedTrackers = category.trackers + [tracker]
+				newCategories.append(TrackerCategory(title: category.title, trackers: updatedTrackers))
+				categoryFound = true
+			} else {
+				newCategories.append(category)
+			}
 		}
 		
-		// 3. Обновляем экран
+		if !categoryFound {
+			newCategories.append(TrackerCategory(title: categoryTitle, trackers: [tracker]))
+		}
+		
+		self.categories = newCategories
 		reloadVisibleCategories()
-		dismiss(animated: true)
 	}
 }
