@@ -38,9 +38,9 @@ final class TrackersViewController: UIViewController {
 	private func setupMockData() {
 		let plantTracker = Tracker(
 			id: UUID(),
-			name: "",
+			name: "Поливать растения",
 			color: .systemGreen,
-			emoji: "",
+			emoji: "😪",
 			schedule: WeekDay.allCases
 		)
 		

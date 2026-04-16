@@ -10,15 +10,23 @@ final class NewHabitViewController: UIViewController {
 	// MARK: - Properties
 	weak var delegate: TrackersViewControllerDelegate?
 	private var schedule: [WeekDay] = []
+	private var category: String? = "Важное"
 	
 	// MARK: - UI Elements
 	private let textField: UITextField = {
 		let tf = UITextField()
-		tf.placeholder = "Введите название трекера"
-		tf.backgroundColor = UIColor(named: "YP Background") ?? .systemGray6
+		let placeholderColor = UIColor(red: 174/255, green: 175/255, blue: 180/255, alpha: 0.7)
+		tf.attributedPlaceholder = NSAttributedString(
+			string: "Введите название трекера",
+			attributes: [.foregroundColor: placeholderColor,
+						 .font: UIFont.systemFont(ofSize: 17, weight: .regular)
+			]
+		)
+		tf.backgroundColor = UIColor(red: 230/255, green: 232/255, blue: 235/255, alpha: 0.3)
 		tf.layer.cornerRadius = 16
 		tf.leftView = UIView(frame: CGRect(x: 0, y: 0, width: 16, height: 0))
 		tf.leftViewMode = .always
+		tf.clearButtonMode = .whileEditing
 		tf.translatesAutoresizingMaskIntoConstraints = false
 		return tf
 	}()
@@ -157,6 +165,13 @@ final class NewHabitViewController: UIViewController {
 		
 		navigationController?.navigationBar.titleTextAttributes = titleAttributes
 	}
+	
+	private func formatScheduleText(_ schedule: [WeekDay]) -> String? {
+		if schedule.isEmpty { return nil }
+		if schedule.count == 7 { return "Каждый день" }
+		
+		return schedule.sorted { $0.calendarNumber < $1.calendarNumber }.map { $0.shortName }.joined(separator: ", ")
+	}
 }
 
 // MARK: - TableView Extensions
@@ -176,9 +191,18 @@ extension NewHabitViewController: UITableViewDataSource, UITableViewDelegate {
 		
 		if indexPath.row == 0 {
 			cell.textLabel?.text = "Категория"
+			cell.detailTextLabel?.text = "Важное"
+			cell.detailTextLabel?.textColor = UIColor(red: 174/255, green: 175/255, blue: 180/255, alpha: 1.0)
+			cell.detailTextLabel?.font = .systemFont(ofSize: 17, weight: .regular)
 			cell.layer.maskedCorners = [.layerMinXMinYCorner, .layerMaxXMinYCorner]
 		} else {
 			cell.textLabel?.text = "Расписание"
+			
+			if let scheduleText = formatScheduleText(self.schedule) {
+				cell.detailTextLabel?.text = scheduleText
+				cell.detailTextLabel?.textColor = UIColor(red: 174/255, green: 175/255, blue: 180/255, alpha: 1.0)
+				cell.detailTextLabel?.font = .systemFont(ofSize: 17, weight: .regular)
+			}
 			cell.layer.maskedCorners = [.layerMaxXMaxYCorner, .layerMinXMaxYCorner]
 			
 			cell.separatorInset = UIEdgeInsets(top: 0, left: 0, bottom: 0, right: .greatestFiniteMagnitude)
