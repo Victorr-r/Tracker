@@ -1,5 +1,6 @@
 import UIKit
 
+// MARK: - Models
 struct Tracker {
 	let id: UUID
 	let name: String
@@ -8,6 +9,7 @@ struct Tracker {
 	let schedule: [WeekDay]?
 }
 
+// MARK: - Enums
 enum WeekDay: String, CaseIterable {
 	case monday = "Понедельник"
 	case tuesday = "Вторник"
@@ -18,6 +20,7 @@ enum WeekDay: String, CaseIterable {
 	case sunday = "Воскресенье"
 }
 
+// MARK: - Extensions
 extension WeekDay {
 	var calendarNumber: Int {
 		switch self {
@@ -28,6 +31,18 @@ extension WeekDay {
 		case .thursday: return 5
 		case .friday: return 6
 		case .saturday: return 7
+		}
+	}
+	
+	var shortName: String {
+		switch self {
+		case .monday: return "Пн"
+		case .tuesday: return "Вт"
+		case .wednesday: return "Ср"
+		case .thursday: return "Чт"
+		case .friday: return "Пт"
+		case .saturday: return "Сб"
+		case .sunday: return "Вс"
 		}
 	}
 }

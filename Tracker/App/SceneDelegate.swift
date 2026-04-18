@@ -4,12 +4,13 @@ class SceneDelegate: UIResponder, UIWindowSceneDelegate {
 	
 	var window: UIWindow?
 	
-	
+	// MARK: - Scene Life Cycle
 	func scene(_ scene: UIScene, willConnectTo session: UISceneSession, options connectionOptions: UIScene.ConnectionOptions) {
 		guard let windowScene = (scene as? UIWindowScene) else { return }
 		let window = UIWindow(windowScene: windowScene)
 		self.window = window
 		
+		// MARK: - Controllers Setup
 		let trackersVC = TrackersViewController()
 		let trackersNav = UINavigationController(rootViewController: trackersVC)
 		let statisticsVC = UIViewController()
@@ -22,6 +23,7 @@ class SceneDelegate: UIResponder, UIWindowSceneDelegate {
 			$0.tabBarItem.imageInsets = UIEdgeInsets(top: 6, left: 0, bottom: -6, right: 0)
 		}
 		
+		// MARK: - TabBar Configuration
 		let tabBar = UITabBarController()
 		
 		if #available(iOS 18.0, *) {
@@ -52,8 +54,9 @@ class SceneDelegate: UIResponder, UIWindowSceneDelegate {
 		tabBar.tabBar.isTranslucent = false
 		tabBar.tabBar.tintColor = UIColor(named: "YP Blue")
 		tabBar.tabBar.unselectedItemTintColor = UIColor(named: "YP Gray")
-		
 		tabBar.viewControllers = [trackersNav, statisticsVC]
+		
+		// MARK: - Root Window
 		window.rootViewController = tabBar
 		window.makeKeyAndVisible()
 	}
