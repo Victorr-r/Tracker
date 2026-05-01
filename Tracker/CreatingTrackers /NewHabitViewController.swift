@@ -167,8 +167,10 @@ final class NewHabitViewController: UIViewController {
 			schedule: schedule
 		)
 		
-		delegate?.didCreateTracker(newTracker)
-		dismiss(animated: true)
+		let categoryTitle = "Важное"
+		TrackerStore.shared.addNewTracker(newTracker, to: categoryTitle)
+		
+		self.view.window?.rootViewController?.dismiss(animated: true)
 	}
 	
 	// MARK: - Private Methods
@@ -260,5 +262,3 @@ final class NewHabitViewController: UIViewController {
 		return schedule.sorted { $0.calendarNumber < $1.calendarNumber }.map { $0.shortName }.joined(separator: ", ")
 	}
 }
-
-
