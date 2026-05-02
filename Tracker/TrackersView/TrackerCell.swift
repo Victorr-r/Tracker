@@ -76,17 +76,21 @@ final class TrackerCell: UICollectionViewCell {
 		
 		titleLabel.text = tracker.name
 		emojiLabel.text = tracker.emoji
-		
 		cardView.backgroundColor = tracker.color
+		doneButton.tintColor = tracker.color
+		doneButton.backgroundColor = .white
 		
+		updateCompletion(isCompleted: isCompleted, completedDays: completedDays)
+	}
+	
+	// MARK: - Update Logic
+	func updateCompletion(isCompleted: Bool, completedDays: Int) {
 		daysLabel.text = formatDays(completedDays)
 		
 		let imageName = isCompleted ? "Ok Tracker" : "Plus Tracker"
 		let image = UIImage(named: imageName)?.withRenderingMode(.alwaysTemplate)
 		
 		doneButton.setImage(image, for: .normal)
-		doneButton.tintColor = tracker.color
-		doneButton.backgroundColor = .white
 		doneButton.alpha = isCompleted ? 0.3 : 1.0
 	}
 	

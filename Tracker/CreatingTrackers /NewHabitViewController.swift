@@ -65,6 +65,16 @@ final class NewHabitViewController: UIViewController {
 		return tf
 	}()
 	
+	private let errorLabel: UILabel = {
+		let label = UILabel()
+		label.text = "Ограничение 38 символов"
+		label.textColor = UIColor(red: 245/255, green: 107/255, blue: 108/255, alpha: 1.0)
+		label.font = .systemFont(ofSize: 17, weight: .regular)
+		label.textAlignment = .center
+		label.isHidden = true
+		return label
+	}()
+	
 	lazy var tableView: UITableView = {
 		let table = UITableView()
 		table.layer.cornerRadius = 16
@@ -134,12 +144,18 @@ final class NewHabitViewController: UIViewController {
 	
 	// MARK: - Actions
 	@objc func textFieldDidChange() {
-		let isTextNotEmpty = !(textField.text?.isEmpty ?? true)
+		guard let text = textField.text else { return }
+		
+		let isOverLimit = text.count > 38
+		
+		errorLabel.isHidden = !isOverLimit
+		
+		let isTextValid = !text.isEmpty && !isOverLimit
 		let isEmojiSelected = selectedEmoji != nil
 		let isColorSelected = selectedColor != nil
 		let isScheduleSelected = !schedule.isEmpty
 		
-		let isFormValid = isTextNotEmpty && isEmojiSelected && isColorSelected && isScheduleSelected
+		let isFormValid = isTextValid && isEmojiSelected && isColorSelected && isScheduleSelected
 		
 		createButton.isEnabled = isFormValid
 		
@@ -147,6 +163,10 @@ final class NewHabitViewController: UIViewController {
 		let inactiveColor = UIColor(red: 174/255, green: 175/255, blue: 180/255, alpha: 1.0)
 		
 		createButton.backgroundColor = isFormValid ? activeColor : inactiveColor
+		
+		UIView.animate(withDuration: 0.2) {
+			self.view.layoutIfNeeded()
+		}
 	}
 	
 	@objc private func didTapCancel() {
@@ -170,6 +190,8 @@ final class NewHabitViewController: UIViewController {
 		let categoryTitle = "Важное"
 		TrackerStore.shared.addNewTracker(newTracker, to: categoryTitle)
 		
+		delegate?.didCreateTracker(newTracker)
+		
 		self.view.window?.rootViewController?.dismiss(animated: true)
 	}
 	
@@ -178,13 +200,20 @@ final class NewHabitViewController: UIViewController {
 		view.addSubview(scrollView)
 		scrollView.addSubview(contentView)
 		
+		let textStackView = UIStackView(arrangedSubviews: [textField, errorLabel])
+		textStackView.axis = .vertical
+		textStackView.spacing = 8
+		textStackView.translatesAutoresizingMaskIntoConstraints = false
+		
 		let stackView = UIStackView(arrangedSubviews: [cancelButton, createButton])
 		stackView.axis = .horizontal
 		stackView.spacing = 8
 		stackView.distribution = .fillEqually
 		stackView.translatesAutoresizingMaskIntoConstraints = false
 		
-		[textField, tableView, emojiCollectionView, colorCollectionView, stackView].forEach {
+		[textStackView, tableView, emojiCollectionView, colorCollectionView, stackView].forEach {
+			$0.translatesAutoresizingMaskIntoConstraints = false
+			contentView.addSubview($0)
 			$0.translatesAutoresizingMaskIntoConstraints = false
 			contentView.addSubview($0)
 		}
@@ -201,12 +230,14 @@ final class NewHabitViewController: UIViewController {
 			contentView.bottomAnchor.constraint(equalTo: scrollView.contentLayoutGuide.bottomAnchor),
 			contentView.widthAnchor.constraint(equalTo: scrollView.frameLayoutGuide.widthAnchor),
 			
-			textField.topAnchor.constraint(equalTo: contentView.topAnchor, constant: 24),
-			textField.leadingAnchor.constraint(equalTo: contentView.leadingAnchor, constant: 16),
-			textField.trailingAnchor.constraint(equalTo: contentView.trailingAnchor, constant: -16),
-			textField.heightAnchor.constraint(equalToConstant: 75),
+			textStackView.topAnchor.constraint(equalTo: contentView.topAnchor, constant: 24),
+			textStackView.leadingAnchor.constraint(equalTo: contentView.leadingAnchor, constant: 16),
+			textStackView.trailingAnchor.constraint(equalTo: contentView.trailingAnchor, constant: -16),
 			
-			tableView.topAnchor.constraint(equalTo: textField.bottomAnchor, constant: 24),
+			textField.heightAnchor.constraint(equalToConstant: 75),
+			errorLabel.heightAnchor.constraint(equalToConstant: 22),
+			
+			tableView.topAnchor.constraint(equalTo: textStackView.bottomAnchor, constant: 24),
 			tableView.leadingAnchor.constraint(equalTo: contentView.leadingAnchor, constant: 16),
 			tableView.trailingAnchor.constraint(equalTo: contentView.trailingAnchor, constant: -16),
 			tableView.heightAnchor.constraint(equalToConstant: 150),
@@ -225,7 +256,6 @@ final class NewHabitViewController: UIViewController {
 			stackView.leadingAnchor.constraint(equalTo: contentView.leadingAnchor, constant: 20),
 			stackView.trailingAnchor.constraint(equalTo: contentView.trailingAnchor, constant: -20),
 			stackView.heightAnchor.constraint(equalToConstant: 60),
-			
 			stackView.bottomAnchor.constraint(equalTo: contentView.bottomAnchor, constant: -24)
 		])
 	}

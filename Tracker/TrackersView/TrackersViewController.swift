@@ -283,7 +283,12 @@ extension TrackersViewController: TrackerCellDelegate {
 			markTrackerAsCompleted(id: id)
 		}
 		
-		collectionView.reloadItems(at: [indexPath])
+		if let cell = collectionView.cellForItem(at: indexPath) as? TrackerCell {
+			let isCompleted = isTrackerCompletedToday(id: id)
+			let completedDays = completedTrackers.filter { $0.id == id }.count
+			
+			cell.updateCompletion(isCompleted: isCompleted, completedDays: completedDays)
+		}
 	}
 }
 // MARK: - TrackersViewControllerDelegate
