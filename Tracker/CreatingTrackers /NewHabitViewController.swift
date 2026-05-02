@@ -9,8 +9,42 @@ final class NewHabitViewController: UIViewController {
 	
 	// MARK: - Properties
 	weak var delegate: TrackersViewControllerDelegate?
-	private var schedule: [WeekDay] = []
-	private var category: String? = "Важное"
+	var schedule: [WeekDay] = []
+	var category: String? = "Важное"
+	var selectedEmoji: String?
+	var selectedColor: UIColor?
+	
+	lazy var emojiCollectionView: UICollectionView = {
+		let layout = UICollectionViewFlowLayout()
+		let cv = UICollectionView(frame: .zero, collectionViewLayout: layout)
+		cv.register(EmojiCell.self, forCellWithReuseIdentifier: EmojiCell.identifier)
+		
+		cv.register(SupplementaryView.self,
+					forSupplementaryViewOfKind: UICollectionView.elementKindSectionHeader,
+					withReuseIdentifier: SupplementaryView.identifier)
+		
+		cv.isScrollEnabled = false
+		cv.dataSource = self
+		cv.delegate = self
+		cv.translatesAutoresizingMaskIntoConstraints = false
+		return cv
+	}()
+	
+	lazy var colorCollectionView: UICollectionView = {
+		let layout = UICollectionViewFlowLayout()
+		let cv = UICollectionView(frame: .zero, collectionViewLayout: layout)
+		cv.register(ColorCell.self, forCellWithReuseIdentifier: ColorCell.identifier)
+		
+		cv.register(SupplementaryView.self,
+					forSupplementaryViewOfKind: UICollectionView.elementKindSectionHeader,
+					withReuseIdentifier: SupplementaryView.identifier)
+		
+		cv.isScrollEnabled = false
+		cv.dataSource = self
+		cv.delegate = self
+		cv.translatesAutoresizingMaskIntoConstraints = false
+		return cv
+	}()
 	
 	// MARK: - UI Elements
 	private let textField: UITextField = {
@@ -31,7 +65,17 @@ final class NewHabitViewController: UIViewController {
 		return tf
 	}()
 	
-	private lazy var tableView: UITableView = {
+	private let errorLabel: UILabel = {
+		let label = UILabel()
+		label.text = "Ограничение 38 символов"
+		label.textColor = UIColor(red: 245/255, green: 107/255, blue: 108/255, alpha: 1.0)
+		label.font = .systemFont(ofSize: 17, weight: .regular)
+		label.textAlignment = .center
+		label.isHidden = true
+		return label
+	}()
+	
+	lazy var tableView: UITableView = {
 		let table = UITableView()
 		table.layer.cornerRadius = 16
 		table.isScrollEnabled = false
@@ -75,6 +119,18 @@ final class NewHabitViewController: UIViewController {
 		return button
 	}()
 	
+	private let scrollView: UIScrollView = {
+		let scroll = UIScrollView()
+		scroll.translatesAutoresizingMaskIntoConstraints = false
+		return scroll
+	}()
+	
+	private let contentView: UIView = {
+		let view = UIView()
+		view.translatesAutoresizingMaskIntoConstraints = false
+		return view
+	}()
+	
 	// MARK: - Lifecycle
 	override func viewDidLoad() {
 		super.viewDidLoad()
@@ -87,9 +143,30 @@ final class NewHabitViewController: UIViewController {
 	}
 	
 	// MARK: - Actions
-	@objc private func textFieldDidChange() {
-		let isNotEmpty = !(textField.text?.isEmpty ?? true)
-		createButton.backgroundColor = isNotEmpty ? .black : .gray
+	@objc func textFieldDidChange() {
+		guard let text = textField.text else { return }
+		
+		let isOverLimit = text.count > 38
+		
+		errorLabel.isHidden = !isOverLimit
+		
+		let isTextValid = !text.isEmpty && !isOverLimit
+		let isEmojiSelected = selectedEmoji != nil
+		let isColorSelected = selectedColor != nil
+		let isScheduleSelected = !schedule.isEmpty
+		
+		let isFormValid = isTextValid && isEmojiSelected && isColorSelected && isScheduleSelected
+		
+		createButton.isEnabled = isFormValid
+		
+		let activeColor = UIColor(red: 26/255, green: 27/255, blue: 34/255, alpha: 1.0)
+		let inactiveColor = UIColor(red: 174/255, green: 175/255, blue: 180/255, alpha: 1.0)
+		
+		createButton.backgroundColor = isFormValid ? activeColor : inactiveColor
+		
+		UIView.animate(withDuration: 0.2) {
+			self.view.layoutIfNeeded()
+		}
 	}
 	
 	@objc private func didTapCancel() {
@@ -97,47 +174,89 @@ final class NewHabitViewController: UIViewController {
 	}
 	
 	@objc private func didTapCreate() {
-		guard let text = textField.text, !text.isEmpty else { return }
+		guard let text = textField.text, !text.isEmpty,
+			  let color = selectedColor,
+			  let emoji = selectedEmoji
+		else { return }
 		
 		let newTracker = Tracker(
 			id: UUID(),
 			name: text,
-			color: .systemBlue,
-			emoji: "❤️",
+			color: color,
+			emoji: emoji,
 			schedule: schedule
 		)
 		
+		let categoryTitle = "Важное"
+		TrackerStore.shared.addNewTracker(newTracker, to: categoryTitle)
+		
 		delegate?.didCreateTracker(newTracker)
-		dismiss(animated: true)
+		
+		self.view.window?.rootViewController?.dismiss(animated: true)
 	}
 	
 	// MARK: - Private Methods
 	private func setupViews() {
+		view.addSubview(scrollView)
+		scrollView.addSubview(contentView)
+		
+		let textStackView = UIStackView(arrangedSubviews: [textField, errorLabel])
+		textStackView.axis = .vertical
+		textStackView.spacing = 8
+		textStackView.translatesAutoresizingMaskIntoConstraints = false
+		
 		let stackView = UIStackView(arrangedSubviews: [cancelButton, createButton])
 		stackView.axis = .horizontal
 		stackView.spacing = 8
 		stackView.distribution = .fillEqually
+		stackView.translatesAutoresizingMaskIntoConstraints = false
 		
-		[textField, tableView, stackView].forEach {
+		[textStackView, tableView, emojiCollectionView, colorCollectionView, stackView].forEach {
 			$0.translatesAutoresizingMaskIntoConstraints = false
-			view.addSubview($0)
+			contentView.addSubview($0)
+			$0.translatesAutoresizingMaskIntoConstraints = false
+			contentView.addSubview($0)
 		}
 		
 		NSLayoutConstraint.activate([
-			textField.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor, constant: 24),
-			textField.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 16),
-			textField.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -16),
-			textField.heightAnchor.constraint(equalToConstant: 75),
+			scrollView.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor),
+			scrollView.leadingAnchor.constraint(equalTo: view.leadingAnchor),
+			scrollView.trailingAnchor.constraint(equalTo: view.trailingAnchor),
+			scrollView.bottomAnchor.constraint(equalTo: view.bottomAnchor),
 			
-			tableView.topAnchor.constraint(equalTo: textField.bottomAnchor, constant: 24),
-			tableView.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 16),
-			tableView.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -16),
+			contentView.topAnchor.constraint(equalTo: scrollView.contentLayoutGuide.topAnchor),
+			contentView.leadingAnchor.constraint(equalTo: scrollView.contentLayoutGuide.leadingAnchor),
+			contentView.trailingAnchor.constraint(equalTo: scrollView.contentLayoutGuide.trailingAnchor),
+			contentView.bottomAnchor.constraint(equalTo: scrollView.contentLayoutGuide.bottomAnchor),
+			contentView.widthAnchor.constraint(equalTo: scrollView.frameLayoutGuide.widthAnchor),
+			
+			textStackView.topAnchor.constraint(equalTo: contentView.topAnchor, constant: 24),
+			textStackView.leadingAnchor.constraint(equalTo: contentView.leadingAnchor, constant: 16),
+			textStackView.trailingAnchor.constraint(equalTo: contentView.trailingAnchor, constant: -16),
+			
+			textField.heightAnchor.constraint(equalToConstant: 75),
+			errorLabel.heightAnchor.constraint(equalToConstant: 22),
+			
+			tableView.topAnchor.constraint(equalTo: textStackView.bottomAnchor, constant: 24),
+			tableView.leadingAnchor.constraint(equalTo: contentView.leadingAnchor, constant: 16),
+			tableView.trailingAnchor.constraint(equalTo: contentView.trailingAnchor, constant: -16),
 			tableView.heightAnchor.constraint(equalToConstant: 150),
 			
-			stackView.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 20),
-			stackView.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -20),
-			stackView.bottomAnchor.constraint(equalTo: view.safeAreaLayoutGuide.bottomAnchor, constant: -34),
-			stackView.heightAnchor.constraint(equalToConstant: 60)
+			emojiCollectionView.topAnchor.constraint(equalTo: tableView.bottomAnchor, constant: 32),
+			emojiCollectionView.leadingAnchor.constraint(equalTo: contentView.leadingAnchor),
+			emojiCollectionView.trailingAnchor.constraint(equalTo: contentView.trailingAnchor),
+			emojiCollectionView.heightAnchor.constraint(equalToConstant: 204),
+			
+			colorCollectionView.topAnchor.constraint(equalTo: emojiCollectionView.bottomAnchor, constant: 16),
+			colorCollectionView.leadingAnchor.constraint(equalTo: contentView.leadingAnchor),
+			colorCollectionView.trailingAnchor.constraint(equalTo: contentView.trailingAnchor),
+			colorCollectionView.heightAnchor.constraint(equalToConstant: 204),
+			
+			stackView.topAnchor.constraint(equalTo: colorCollectionView.bottomAnchor, constant: 16),
+			stackView.leadingAnchor.constraint(equalTo: contentView.leadingAnchor, constant: 20),
+			stackView.trailingAnchor.constraint(equalTo: contentView.trailingAnchor, constant: -20),
+			stackView.heightAnchor.constraint(equalToConstant: 60),
+			stackView.bottomAnchor.constraint(equalTo: contentView.bottomAnchor, constant: -24)
 		])
 	}
 	
@@ -166,72 +285,10 @@ final class NewHabitViewController: UIViewController {
 		navigationController?.navigationBar.titleTextAttributes = titleAttributes
 	}
 	
-	private func formatScheduleText(_ schedule: [WeekDay]) -> String? {
+	func formatScheduleText(_ schedule: [WeekDay]) -> String? {
 		if schedule.isEmpty { return nil }
 		if schedule.count == 7 { return "Каждый день" }
 		
 		return schedule.sorted { $0.calendarNumber < $1.calendarNumber }.map { $0.shortName }.joined(separator: ", ")
-	}
-}
-
-// MARK: - TableView Extensions
-extension NewHabitViewController: UITableViewDataSource, UITableViewDelegate {
-	func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
-		return 2
-	}
-	
-	func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
-		let cell = UITableViewCell(style: .subtitle, reuseIdentifier: "cell")
-		cell.backgroundColor = .clear
-		cell.selectionStyle = .none
-		cell.accessoryType = .disclosureIndicator
-		
-		cell.layer.masksToBounds = true
-		cell.layer.cornerRadius = 16
-		
-		if indexPath.row == 0 {
-			cell.textLabel?.text = "Категория"
-			cell.detailTextLabel?.text = "Важное"
-			cell.detailTextLabel?.textColor = UIColor(red: 174/255, green: 175/255, blue: 180/255, alpha: 1.0)
-			cell.detailTextLabel?.font = .systemFont(ofSize: 17, weight: .regular)
-			cell.layer.maskedCorners = [.layerMinXMinYCorner, .layerMaxXMinYCorner]
-		} else {
-			cell.textLabel?.text = "Расписание"
-			
-			if let scheduleText = formatScheduleText(self.schedule) {
-				cell.detailTextLabel?.text = scheduleText
-				cell.detailTextLabel?.textColor = UIColor(red: 174/255, green: 175/255, blue: 180/255, alpha: 1.0)
-				cell.detailTextLabel?.font = .systemFont(ofSize: 17, weight: .regular)
-			}
-			cell.layer.maskedCorners = [.layerMaxXMaxYCorner, .layerMinXMaxYCorner]
-			
-			cell.separatorInset = UIEdgeInsets(top: 0, left: 0, bottom: 0, right: .greatestFiniteMagnitude)
-		}
-		return cell
-	}
-	
-	func tableView(_ tableView: UITableView, heightForRowAt indexPath: IndexPath) -> CGFloat {
-		return 75
-	}
-	
-	func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
-		if indexPath.row == 1 {
-			let scheduleVC = ScheduleViewController()
-			scheduleVC.selectedDays = Set(self.schedule)
-			scheduleVC.completion = { [weak self] updatedSchedule in
-				self?.schedule = updatedSchedule
-				self?.tableView.reloadData()
-			}
-			navigationController?.pushViewController(scheduleVC, animated: true)
-		}
-		tableView.deselectRow(at: indexPath, animated: true)
-	}
-}
-
-// MARK: - UITextFieldDelegate
-extension NewHabitViewController: UITextFieldDelegate {
-	func textFieldShouldReturn(_ textField: UITextField) -> Bool {
-		textField.resignFirstResponder()
-		return true
 	}
 }
