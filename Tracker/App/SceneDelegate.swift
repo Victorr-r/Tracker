@@ -10,7 +10,20 @@ class SceneDelegate: UIResponder, UIWindowSceneDelegate {
 		let window = UIWindow(windowScene: windowScene)
 		self.window = window
 		
-		// MARK: - Controllers Setup
+		let onboardingVC = OnboardingViewController(
+			transitionStyle: .scroll,
+			navigationOrientation: .horizontal,
+			options: nil
+		)
+		
+		window.rootViewController = onboardingVC
+		window.makeKeyAndVisible()
+	}
+	
+	// MARK: - Public Navigation Method
+	func switchToMainScreen() {
+		guard let window = window else { return }
+		
 		let trackersVC = TrackersViewController()
 		let trackersNav = UINavigationController(rootViewController: trackersVC)
 		let statisticsVC = UIViewController()
@@ -23,7 +36,7 @@ class SceneDelegate: UIResponder, UIWindowSceneDelegate {
 			$0.tabBarItem.imageInsets = UIEdgeInsets(top: 6, left: 0, bottom: -6, right: 0)
 		}
 		
-		// MARK: - TabBar Configuration
+		// Конфигурация твоего TabBar
 		let tabBar = UITabBarController()
 		
 		if #available(iOS 18.0, *) {
@@ -56,8 +69,7 @@ class SceneDelegate: UIResponder, UIWindowSceneDelegate {
 		tabBar.tabBar.unselectedItemTintColor = UIColor(named: "YP Gray")
 		tabBar.viewControllers = [trackersNav, statisticsVC]
 		
-		// MARK: - Root Window
 		window.rootViewController = tabBar
-		window.makeKeyAndVisible()
+		UIView.transition(with: window, duration: 0.3, options: .transitionCrossDissolve, animations: nil, completion: nil)
 	}
 }
