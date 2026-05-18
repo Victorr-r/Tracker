@@ -5,12 +5,12 @@ protocol TrackersViewControllerDelegate: AnyObject {
 	func didCreateTracker(_ tracker: Tracker)
 }
 
-final class NewHabitViewController: UIViewController {
+final class NewHabitViewController: UIViewController, UITextFieldDelegate {
 	
 	// MARK: - Properties
 	weak var delegate: TrackersViewControllerDelegate?
 	var schedule: [WeekDay] = []
-	var category: String? = "Важное"
+	var category: String?
 	var selectedEmoji: String?
 	var selectedColor: UIColor?
 	
@@ -176,7 +176,8 @@ final class NewHabitViewController: UIViewController {
 	@objc private func didTapCreate() {
 		guard let text = textField.text, !text.isEmpty,
 			  let color = selectedColor,
-			  let emoji = selectedEmoji
+			  let emoji = selectedEmoji,
+			  let categoryTitle = category
 		else { return }
 		
 		let newTracker = Tracker(
@@ -187,7 +188,6 @@ final class NewHabitViewController: UIViewController {
 			schedule: schedule
 		)
 		
-		let categoryTitle = "Важное"
 		TrackerStore.shared.addNewTracker(newTracker, to: categoryTitle)
 		
 		delegate?.didCreateTracker(newTracker)
@@ -212,8 +212,6 @@ final class NewHabitViewController: UIViewController {
 		stackView.translatesAutoresizingMaskIntoConstraints = false
 		
 		[textStackView, tableView, emojiCollectionView, colorCollectionView, stackView].forEach {
-			$0.translatesAutoresizingMaskIntoConstraints = false
-			contentView.addSubview($0)
 			$0.translatesAutoresizingMaskIntoConstraints = false
 			contentView.addSubview($0)
 		}
@@ -292,3 +290,13 @@ final class NewHabitViewController: UIViewController {
 		return schedule.sorted { $0.calendarNumber < $1.calendarNumber }.map { $0.shortName }.joined(separator: ", ")
 	}
 }
+
+// MARK: - CategoriesViewControllerDelegate
+extension NewHabitViewController: CategoriesViewControllerDelegate {
+	func didSelectCategory(_ category: TrackerCategory) {
+		self.category = category.title
+		self.tableView.reloadData()
+		textFieldDidChange()
+	}
+}
+

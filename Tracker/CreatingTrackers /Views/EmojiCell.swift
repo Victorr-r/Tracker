@@ -11,6 +11,11 @@ final class EmojiCell: UICollectionViewCell {
 		return label
 	}()
 	
+	override func prepareForReuse() {
+		super.prepareForReuse()
+		contentView.backgroundColor = .clear
+	}
+	
 	override init(frame: CGRect) {
 		super.init(frame: frame)
 		contentView.layer.cornerRadius = 16

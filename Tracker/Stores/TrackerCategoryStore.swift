@@ -58,6 +58,31 @@ final class TrackerCategoryStore: NSObject {
 		
 		return TrackerCategory(title: title, trackers: trackers)
 	}
+	
+	var categories: [TrackerCategory] {
+		guard let objects = fetchedResultsController.fetchedObjects else { return [] }
+		return objects.compactMap { try? makeCategory(from: $0) }
+	}
+	
+	func addNewCategory(_ category: TrackerCategory) throws {
+		let categoryCoreData = TrackerCategoryCoreData(context: context)
+		categoryCoreData.title = category.title
+		categoryCoreData.trackers = NSSet()
+		
+		try context.save()
+	}
+	
+	func deleteCategory(with title: String) throws {
+		let request = TrackerCategoryCoreData.fetchRequest()
+		request.predicate = NSPredicate(format: "title == %@", title)
+		
+		if let categories = try? context.fetch(request) {
+			for category in categories {
+				context.delete(category)
+			}
+			try context.save()
+		}
+	}
 }
 
 // MARK: - NSFetchedResultsControllerDelegate (Реализация слежки)

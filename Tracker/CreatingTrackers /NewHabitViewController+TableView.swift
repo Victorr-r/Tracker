@@ -23,6 +23,7 @@ extension NewHabitViewController: UICollectionViewDataSource {
 			return cell
 		}
 	}
+	
 	func collectionView(_ collectionView: UICollectionView, viewForSupplementaryElementOfKind kind: String, at indexPath: IndexPath) -> UICollectionReusableView {
 		guard let view = collectionView.dequeueReusableSupplementaryView(ofKind: kind, withReuseIdentifier: SupplementaryView.identifier, for: indexPath) as? SupplementaryView else {
 			return UICollectionReusableView()
@@ -37,20 +38,39 @@ extension NewHabitViewController: UICollectionViewDelegate {
 	func collectionView(_ collectionView: UICollectionView, didSelectItemAt indexPath: IndexPath) {
 		if collectionView == emojiCollectionView {
 			let emoji = Resources.emojis[indexPath.row]
+			var indexPathsToReload: [IndexPath] = [indexPath]
+			
+			if let previousEmoji = selectedEmoji,
+			   let previousIndex = Resources.emojis.firstIndex(of: previousEmoji) {
+				let oldIndexPath = IndexPath(row: previousIndex, section: 0)
+				indexPathsToReload.append(oldIndexPath)
+			}
+			
 			if selectedEmoji == emoji {
 				selectedEmoji = nil
 			} else {
 				selectedEmoji = emoji
 			}
-			emojiCollectionView.reloadData()
+			
+			emojiCollectionView.reloadItems(at: indexPathsToReload)
+			
 		} else {
 			let color = Resources.colors[indexPath.row]
+			var indexPathsToReload: [IndexPath] = [indexPath]
+			
+			if let previousColor = selectedColor,
+			   let previousIndex = Resources.colors.firstIndex(of: previousColor) {
+				let oldIndexPath = IndexPath(row: previousIndex, section: 0)
+				indexPathsToReload.append(oldIndexPath)
+			}
+			
 			if selectedColor == color {
 				selectedColor = nil
 			} else {
 				selectedColor = color
 			}
-			colorCollectionView.reloadData()
+			
+			colorCollectionView.reloadItems(at: indexPathsToReload)
 		}
 		
 		textFieldDidChange()
@@ -74,6 +94,7 @@ extension NewHabitViewController: UICollectionViewDelegateFlowLayout {
 	func collectionView(_ collectionView: UICollectionView, layout collectionViewLayout: UICollectionViewLayout, minimumLineSpacingForSectionAt section: Int) -> CGFloat {
 		return 0
 	}
+	
 	func collectionView(_ collectionView: UICollectionView, layout collectionViewLayout: UICollectionViewLayout, referenceSizeForHeaderInSection section: Int) -> CGSize {
 		return CGSize(width: collectionView.frame.width, height: 20)
 	}
