@@ -3,22 +3,20 @@ import UIKit
 final class NewCategoryViewController: UIViewController {
 	
 	// MARK: - Properties
-	var viewModel: CategoriesViewModel!
+	private let viewModel: CategoriesViewModel
 	
 	// MARK: - UI Elements
 	private let textField: UITextField = {
 		let tf = UITextField()
-		let placeholderColor = UIColor(red: 174/255, green: 175/255, blue: 180/255, alpha: 1)
+		let placeholderColor = UIColor(red: 174/255, green: 175/255, blue: 180/255, alpha: 1.0)
 		tf.attributedPlaceholder = NSAttributedString(
 			string: "Введите название категории",
 			attributes: [.foregroundColor: placeholderColor,
 						 .font: UIFont.systemFont(ofSize: 17, weight: .regular)
 			]
 		)
-		
 		tf.backgroundColor = UIColor(red: 230/255, green: 232/255, blue: 235/255, alpha: 0.3)
 		tf.layer.cornerRadius = 16
-		
 		tf.leftView = UIView(frame: CGRect(x: 0, y: 0, width: 16, height: 0))
 		tf.leftViewMode = .always
 		tf.clearButtonMode = .whileEditing
@@ -39,23 +37,44 @@ final class NewCategoryViewController: UIViewController {
 		return button
 	}()
 	
+	// MARK: - Initialization
+	init(viewModel: CategoriesViewModel) {
+		self.viewModel = viewModel
+		super.init(nibName: nil, bundle: nil)
+	}
+	
+	required init?(coder: NSCoder) {
+		fatalError("init(coder:) has not been implemented")
+	}
+	
 	// MARK: - Lifecycle
 	override func viewDidLoad() {
 		super.viewDidLoad()
+		
+		setupUI()
+		setupTextField()
+		setupGestureRecognizer()
+	}
+	
+	// MARK: - Private Methods
+	private func setupUI() {
 		title = "Новая категория"
 		view.backgroundColor = .white
 		navigationItem.hidesBackButton = true
 		
 		setupLayout()
-		
+	}
+	
+	private func setupTextField() {
 		textField.delegate = self
 		textField.addTarget(self, action: #selector(textFieldDidChange), for: .editingChanged)
-		
+	}
+	
+	private func setupGestureRecognizer() {
 		let tap = UITapGestureRecognizer(target: self, action: #selector(hideKeyboard))
 		view.addGestureRecognizer(tap)
 	}
 	
-	// MARK: - Layout
 	private func setupLayout() {
 		view.addSubview(textField)
 		view.addSubview(readyButton)
@@ -86,7 +105,6 @@ final class NewCategoryViewController: UIViewController {
 		guard let text = textField.text else { return }
 		
 		viewModel.addCategory(named: text)
-		
 		navigationController?.popViewController(animated: true)
 	}
 	

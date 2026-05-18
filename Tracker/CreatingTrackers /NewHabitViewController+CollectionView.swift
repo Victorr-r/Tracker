@@ -58,8 +58,7 @@ extension NewHabitViewController: UITableViewDataSource, UITableViewDelegate {
 				selectedCategory: currentCategory
 			)
 			
-			let categoriesVC = CategoriesViewController()
-			categoriesVC.viewModel = categoriesViewModel
+			let categoriesVC = CategoriesViewController(viewModel: categoriesViewModel)
 			categoriesVC.delegate = self
 			
 			navigationController?.pushViewController(categoriesVC, animated: true)
@@ -82,5 +81,20 @@ extension NewHabitViewController {
 	func textFieldShouldReturn(_ textField: UITextField) -> Bool {
 		textField.resignFirstResponder()
 		return true
+	}
+	
+	func textField(_ textField: UITextField, shouldChangeCharactersIn range: NSRange, replacementString string: String) -> Bool {
+		let currentText = textField.text ?? ""
+		
+		guard let textRange = Range(range, in: currentText) else {
+			return false
+		}
+		
+		let updatedText = currentText.replacingCharacters(
+			in: textRange,
+			with: string
+		)
+		
+		return updatedText.count <= 38
 	}
 }

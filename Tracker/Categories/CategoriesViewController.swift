@@ -7,7 +7,7 @@ protocol CategoriesViewControllerDelegate: AnyObject {
 final class CategoriesViewController: UIViewController {
 	
 	// MARK: - Properties
-	var viewModel: CategoriesViewModel!
+	private let viewModel: CategoriesViewModel
 	weak var delegate: CategoriesViewControllerDelegate?
 	
 	// MARK: - UI Elements
@@ -53,19 +53,44 @@ final class CategoriesViewController: UIViewController {
 		return button
 	}()
 	
+	// MARK: - Initialization
+	init(viewModel: CategoriesViewModel) {
+		self.viewModel = viewModel
+		super.init(nibName: nil, bundle: nil)
+	}
+	
+	required init?(coder: NSCoder) {
+		fatalError("init(coder:) has not been implemented")
+	}
+	
 	// MARK: - Lifecycle
 	override func viewDidLoad() {
 		super.viewDidLoad()
+		
+		setupUI()
+		setupTableView()
+		bindViewModel()
+		updatePlaceholderState()
+	}
+	
+	// MARK: - Private Methods
+	private func setupUI() {
 		title = "Категория"
 		view.backgroundColor = .white
 		navigationItem.hidesBackButton = true
 		
 		setupLayout()
-		setupTableView()
-		
+	}
+	
+	private func setupTableView() {
+		tableView.dataSource = self
+		tableView.delegate = self
+	}
+	
+	private func bindViewModel() {
 		viewModel.categories.bind { [weak self] categories in
 			self?.tableView.reloadData()
-			self?.togglePlaceholder(isEmpty: categories.isEmpty)
+			self?.updatePlaceholderState()
 		}
 		
 		viewModel.selectedCategory.bind { [weak self] category in
@@ -73,14 +98,13 @@ final class CategoriesViewController: UIViewController {
 			self.delegate?.didSelectCategory(category)
 			self.navigationController?.popViewController(animated: true)
 		}
-		
-		togglePlaceholder(isEmpty: viewModel.categories.value.isEmpty)
 	}
 	
-	// MARK: - Setup
-	private func setupTableView() {
-		tableView.dataSource = self
-		tableView.delegate = self
+	private func updatePlaceholderState() {
+		let isEmpty = viewModel.categories.value.isEmpty
+		tableView.isHidden = isEmpty
+		placeholderImageView.isHidden = !isEmpty
+		placeholderLabel.isHidden = !isEmpty
 	}
 	
 	private func setupLayout() {
@@ -112,19 +136,9 @@ final class CategoriesViewController: UIViewController {
 		])
 	}
 	
-	private func togglePlaceholder(isEmpty: Bool) {
-		tableView.isHidden = isEmpty
-		
-		placeholderImageView.isHidden = !isEmpty
-		placeholderLabel.isHidden = !isEmpty
-	}
-	
-	
 	// MARK: - Actions
 	@objc private func didTapAddCategoryButton() {
-		let newCategoryVC = NewCategoryViewController()
-		
-		newCategoryVC.viewModel = self.viewModel
+		let newCategoryVC = NewCategoryViewController(viewModel: self.viewModel)
 		
 		navigationController?.pushViewController(newCategoryVC, animated: true)
 	}
@@ -202,6 +216,6 @@ extension CategoriesViewController: UITableViewDelegate {
 	}
 	
 	func tableView(_ tableView: UITableView, heightForRowAt indexPath: IndexPath) -> CGFloat {
-		return 75 
+		return 75
 	}
 }
