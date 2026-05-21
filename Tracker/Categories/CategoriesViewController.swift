@@ -32,7 +32,7 @@ final class CategoriesViewController: UIViewController {
 	
 	private let placeholderLabel: UILabel = {
 		let label = UILabel()
-		label.text = "Привычки и события можно\nобъединить по смыслу"
+		label.text = NSLocalizedString("categories.placeholder.empty", comment: "")
 		label.font = .systemFont(ofSize: 12, weight: .medium)
 		label.textColor = UIColor(red: 26/255, green: 27/255, blue: 34/255, alpha: 1.0)
 		label.textAlignment = .center
@@ -44,7 +44,7 @@ final class CategoriesViewController: UIViewController {
 	private lazy var addCategoryButton: UIButton = {
 		let button = UIButton(type: .system)
 		button.backgroundColor = UIColor(red: 26/255, green: 27/255, blue: 34/255, alpha: 1.0)
-		button.setTitle("Добавить категорию", for: .normal)
+		button.setTitle(NSLocalizedString("categories.addButton", comment: ""), for: .normal)
 		button.setTitleColor(.white, for: .normal)
 		button.titleLabel?.font = .systemFont(ofSize: 16, weight: .medium)
 		button.layer.cornerRadius = 16
@@ -75,7 +75,7 @@ final class CategoriesViewController: UIViewController {
 	
 	// MARK: - Private Methods
 	private func setupUI() {
-		title = "Категория"
+		title = NSLocalizedString("categories.title", comment: "")
 		view.backgroundColor = .white
 		navigationItem.hidesBackButton = true
 		

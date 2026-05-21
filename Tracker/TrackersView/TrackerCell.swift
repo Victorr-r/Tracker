@@ -96,16 +96,10 @@ final class TrackerCell: UICollectionViewCell {
 	
 	// MARK: - Logic
 	private func formatDays(_ count: Int) -> String {
-		let remainder10 = count % 10
-		let remainder100 = count % 100
-		if remainder10 == 1 && remainder100 != 11 {
-			return "\(count) день"
-		} else if remainder10 >= 2 && remainder10 <= 4 && (remainder100 < 10 || remainder100 >= 20) {
-			return "\(count) дня"
-		} else {
-			return "\(count) дней"
+			let formatString = NSLocalizedString("numberOfDays", comment: "Счетчик количества дней выполнения трекера")
+			
+			return String.localizedStringWithFormat(formatString, count)
 		}
-	}
 	
 	@objc private func didTapDoneButton() {
 		guard let id = trackerId, let indexPath = indexPath else { return }

@@ -1,0 +1,27 @@
+// Главный экран трекеров
+"trackers.title" = "Трекеры";
+"trackers.searchPlaceholder" = "Поиск";
+"trackers.placeholder.empty" = "Что будем отслеживать?";
+"trackers.placeholder.nothingFound" = "Ничего не найдено";
+
+// Экран категорий
+"categories.title" = "Категория";
+"categories.placeholder.empty" = "Привычки и события можно\nобъединить по смыслу";
+"categories.addButton" = "Добавить категорию";
+
+// Экран создания новой категории
+"newCategory.title" = "Новая категория";
+"newCategory.textFieldPlaceholder" = "Введите название категории";
+"newCategory.readyButton" = "Готово";
+
+// Экран создания привычки
+"newHabit.title" = "Новая привычка";
+"newHabit.categoryRow" = "Категория";
+"newHabit.scheduleRow" = "Расписание";
+"newHabit.textFieldPlaceholder" = "Введите название трекера";
+"newHabit.errorLabel" = "Ограничение 38 символов";
+"newHabit.cancelButton" = "Отменить";
+"newHabit.createButton" = "Создать";
+
+// Контекстное меню
+"contextMenu.delete" = "Удалить";
