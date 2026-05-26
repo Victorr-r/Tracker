@@ -107,31 +107,33 @@ final class TrackersViewController: UIViewController {
 		}
 		
 		NSLayoutConstraint.activate([
-			placeholderLabel.bottomAnchor.constraint(equalTo: view.safeAreaLayoutGuide.bottomAnchor, constant: -220),
-			placeholderLabel.centerXAnchor.constraint(equalTo: view.centerXAnchor),
-			placeholderLabel.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 16),
-			placeholderLabel.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -16),
-			
-			placeholderLabel.topAnchor.constraint(equalTo: placeholderImageView.bottomAnchor, constant: 8),
-			
-			placeholderImageView.centerXAnchor.constraint(equalTo: view.centerXAnchor),
-			placeholderImageView.widthAnchor.constraint(equalToConstant: 80),
-			placeholderImageView.heightAnchor.constraint(equalToConstant: 80)
-		])
+				   placeholderImageView.centerXAnchor.constraint(equalTo: view.centerXAnchor),
+				   placeholderImageView.centerYAnchor.constraint(equalTo: view.centerYAnchor),
+				   placeholderImageView.widthAnchor.constraint(equalToConstant: 80),
+				   placeholderImageView.heightAnchor.constraint(equalToConstant: 80),
+				   
+				   placeholderLabel.topAnchor.constraint(equalTo: placeholderImageView.bottomAnchor, constant: 8),
+				   placeholderLabel.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 16),
+				   placeholderLabel.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -16),
+				   placeholderLabel.heightAnchor.constraint(equalToConstant: 18)
+			   ])
 	}
 	
 	// MARK: - Logic
 	private func reloadVisibleCategories() {
 		self.completedTrackers = trackerRecordStore.records
 		self.categories = TrackerStore.shared.fetchCategories()
-		//let calendar = Calendar.current
-		//let filterWeekday = calendar.component(.weekday, from: currentDate)
+		let calendar = Calendar.current
+		let filterWeekday = calendar.component(.weekday, from: currentDate)
 		let filterText = (navigationItem.searchController?.searchBar.text ?? "").lowercased()
 		
 		visibleCategories = categories.compactMap { category in
 			let trackers = category.trackers.filter { tracker in
 				let textCondition = filterText.isEmpty || tracker.name.lowercased().contains(filterText)
-				let dateCondition = true
+				let dateCondition = tracker.schedule?.contains { (weekday: WeekDay) in
+					weekday.calendarNumber == filterWeekday
+				} ?? false
+				
 				return textCondition && dateCondition
 			}
 			if trackers.isEmpty { return nil }
@@ -159,19 +161,19 @@ final class TrackersViewController: UIViewController {
 			placeholderImageView.image = UIImage(named: "Error")
 			
 			let isSearchActive = !(navigationItem.searchController?.searchBar.text?.isEmpty ?? true)
-			placeholderLabel.text = isSearchActive ? "Ничего не найдено" : "Что будем отслеживать?"
+			if isSearchActive {
+				placeholderImageView.image = UIImage(named: "Error 2")
+				placeholderLabel.text = "Ничего не найдено"
+			} else {
+				placeholderImageView.image = UIImage(named: "Error")
+				placeholderLabel.text = "Что будем отслеживать?"
+			}
 			
 			view.bringSubviewToFront(placeholderImageView)
 			view.bringSubviewToFront(placeholderLabel)
 		} else {
 			placeholderImageView.isHidden = true
 			placeholderLabel.isHidden = true
-		}
-	}
-	
-	private func isTrackerCompletedToday(id: UUID) -> Bool {
-		completedTrackers.contains { record in
-			record.id == id && Calendar.current.isDate(record.date, inSameDayAs: currentDate)
 		}
 	}
 	
@@ -185,6 +187,12 @@ final class TrackersViewController: UIViewController {
 		let record = TrackerRecord(id: id, date: currentDate)
 		try? trackerRecordStore.remove(record)
 		self.completedTrackers = trackerRecordStore.records
+	}
+	
+	private func isTrackerCompletedToday(id: UUID) -> Bool {
+		completedTrackers.contains { record in
+			record.id == id && Calendar.current.isDate(record.date, inSameDayAs: currentDate)
+		}
 	}
 	
 	// MARK: - Actions
