@@ -26,7 +26,8 @@ final class TrackersViewController: UIViewController {
 	// MARK: - Lifecycle
 	override func viewDidLoad() {
 		super.viewDidLoad()
-		view.backgroundColor = UIColor(named: "YP White") ?? .white
+		view.backgroundColor = TrackerColors.mainBackground
+			collectionView.backgroundColor = TrackerColors.mainBackground
 		
 		setupNavBar()
 		setupSearchController()
@@ -78,6 +79,11 @@ final class TrackersViewController: UIViewController {
 		
 		datePicker.addTarget(self, action: #selector(dateChanged(_:)), for: .valueChanged)
 		
+		datePicker.backgroundColor = UIColor(red: 240/255, green: 240/255, blue: 240/255, alpha: 1.0)
+		datePicker.overrideUserInterfaceStyle = .light
+		datePicker.layer.cornerRadius = 8
+		datePicker.clipsToBounds = true
+		
 		datePicker.translatesAutoresizingMaskIntoConstraints = false
 		NSLayoutConstraint.activate([
 			datePicker.widthAnchor.constraint(equalToConstant: 100),
@@ -91,13 +97,41 @@ final class TrackersViewController: UIViewController {
 		let searchController = UISearchController(searchResultsController: nil)
 		searchController.searchResultsUpdater = self
 		searchController.hidesNavigationBarDuringPresentation = false
-		searchController.searchBar.placeholder = "Поиск"
+		
+		let searchElementColor = UIColor { traitCollection in
+					switch traitCollection.userInterfaceStyle {
+					case .dark:
+						return UIColor(red: 235/255, green: 235/255, blue: 245/255, alpha: 1.0)
+					default:
+						return UIColor(red: 174/255, green: 175/255, blue: 180/255, alpha: 1.0)
+					}
+				}
+				
+				searchController.searchBar.searchTextField.attributedPlaceholder = NSAttributedString(
+					string: "Поиск",
+					attributes: [.foregroundColor: searchElementColor]
+				)
+				
+				searchController.searchBar.searchTextField.leftView?.tintColor = searchElementColor
+				
+				searchController.searchBar.searchTextField.textColor = UIColor { traitCollection in
+					return traitCollection.userInterfaceStyle == .dark ? .white : .black
+				}
+				
+				searchController.searchBar.searchTextField.backgroundColor = TrackerColors.searchFieldBackground
 		navigationItem.searchController = searchController
 	}
 	
 	private func setupPlaceholder() {
 		placeholderLabel.text = "Что будем отслеживать?"
-		placeholderLabel.textColor = UIColor(red: 26/255, green: 24/255, blue: 34/255, alpha: 1.0)
+		placeholderLabel.textColor = UIColor { traitCollection in
+				switch traitCollection.userInterfaceStyle {
+				case .dark:
+					return UIColor(red: 255/255, green: 255/255, blue: 255/255, alpha: 1.0)
+				default:
+					return UIColor(red: 26/255, green: 27/255, blue: 34/255, alpha: 1.0)
+				}
+			}
 		placeholderLabel.font = .systemFont(ofSize: 12, weight: .medium)
 		placeholderLabel.textAlignment = .center
 		

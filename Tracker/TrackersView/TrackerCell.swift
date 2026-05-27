@@ -47,6 +47,7 @@ final class TrackerCell: UICollectionViewCell {
 	private let daysLabel: UILabel = {
 		let label = UILabel()
 		label.font = .systemFont(ofSize: 12, weight: .medium)
+		label.textColor = UIColor(named: "YP Black") ?? .label
 		label.translatesAutoresizingMaskIntoConstraints = false
 		return label
 	}()
@@ -77,8 +78,8 @@ final class TrackerCell: UICollectionViewCell {
 		titleLabel.text = tracker.name
 		emojiLabel.text = tracker.emoji
 		cardView.backgroundColor = tracker.color
-		doneButton.tintColor = tracker.color
-		doneButton.backgroundColor = .white
+		doneButton.tintColor = UIColor(named: "YP White") ?? .systemBackground
+		doneButton.backgroundColor = tracker.color
 		
 		updateCompletion(isCompleted: isCompleted, completedDays: completedDays)
 	}

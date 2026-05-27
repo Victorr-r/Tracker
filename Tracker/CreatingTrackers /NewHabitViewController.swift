@@ -56,7 +56,16 @@ final class NewHabitViewController: UIViewController, UITextFieldDelegate {
 						 .font: UIFont.systemFont(ofSize: 17, weight: .regular)
 			]
 		)
-		tf.backgroundColor = UIColor(red: 230/255, green: 232/255, blue: 235/255, alpha: 0.3)
+		tf.backgroundColor = UIColor { traitCollection in
+					switch traitCollection.userInterfaceStyle {
+					case .dark:
+						return UIColor.white.withAlphaComponent(0.1)
+					default:
+						return UIColor(red: 230/255, green: 232/255, blue: 235/255, alpha: 0.3) 
+					}
+				}
+				
+				tf.textColor = UIColor(named: "YP Black") ?? .label
 		tf.layer.cornerRadius = 16
 		tf.leftView = UIView(frame: CGRect(x: 0, y: 0, width: 16, height: 0))
 		tf.leftViewMode = .always

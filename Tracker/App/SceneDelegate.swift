@@ -40,7 +40,6 @@ final class SceneDelegate: UIResponder, UIWindowSceneDelegate {
 		
 		tabBar.viewControllers = [trackersNav, statisticsVC]
 		
-		// Настраиваем параметры расположения элементов
 		if #available(iOS 18.0, *) {
 			tabBar.tabBar.traitOverrides.horizontalSizeClass = .compact
 		}
