@@ -70,13 +70,13 @@ final class TrackerCell: UICollectionViewCell {
 	required init?(coder: NSCoder) { fatalError() }
 	
 	// MARK: - Reuse Preparation
-		override func prepareForReuse() {
-			super.prepareForReuse()
-			doneButton.backgroundColor = nil
-			doneButton.tintColor = nil
-			doneButton.setImage(nil, for: .normal)
-			cardView.backgroundColor = nil
-		}
+	override func prepareForReuse() {
+		super.prepareForReuse()
+		doneButton.backgroundColor = nil
+		doneButton.tintColor = nil
+		doneButton.setImage(nil, for: .normal)
+		cardView.backgroundColor = nil
+	}
 	
 	// MARK: - Configuration
 	func configure(with tracker: Tracker, isCompleted: Bool, completedDays: Int, indexPath: IndexPath) {
@@ -104,11 +104,8 @@ final class TrackerCell: UICollectionViewCell {
 			doneButton.backgroundColor = cardView.backgroundColor?.withAlphaComponent(0.3)
 			doneButton.tintColor = cardView.backgroundColor
 		} else {
-			// Круг из Assets красится в цвет трекера (оранжевый/зеленый)
 			doneButton.tintColor = cardView.backgroundColor
 			
-			// Нативный динамический цвет: система САМА мгновенно меняет фон под плюсиком
-			// при смене темы без вызова каких-либо методов в коде ячейки!
 			if #available(iOS 13.0, *) {
 				doneButton.backgroundColor = UIColor { traitCollection in
 					return traitCollection.userInterfaceStyle == .dark ? .black : .white

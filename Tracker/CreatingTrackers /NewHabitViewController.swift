@@ -13,6 +13,8 @@ final class NewHabitViewController: UIViewController, UITextFieldDelegate {
 	var category: String?
 	var selectedEmoji: String?
 	var selectedColor: UIColor?
+	var trackerToEdit: Tracker?
+	var isEditMode: Bool { trackerToEdit != nil }
 	
 	lazy var emojiCollectionView: UICollectionView = {
 		let layout = UICollectionViewFlowLayout()
@@ -57,15 +59,15 @@ final class NewHabitViewController: UIViewController, UITextFieldDelegate {
 			]
 		)
 		tf.backgroundColor = UIColor { traitCollection in
-					switch traitCollection.userInterfaceStyle {
-					case .dark:
-						return UIColor.white.withAlphaComponent(0.1)
-					default:
-						return UIColor(red: 230/255, green: 232/255, blue: 235/255, alpha: 0.3) 
-					}
-				}
-				
-				tf.textColor = UIColor(named: "YP Black") ?? .label
+			switch traitCollection.userInterfaceStyle {
+			case .dark:
+				return UIColor.white.withAlphaComponent(0.1)
+			default:
+				return UIColor(red: 230/255, green: 232/255, blue: 235/255, alpha: 0.3)
+			}
+		}
+		
+		tf.textColor = UIColor(named: "YP Black") ?? .label
 		tf.layer.cornerRadius = 16
 		tf.leftView = UIView(frame: CGRect(x: 0, y: 0, width: 16, height: 0))
 		tf.leftViewMode = .always
@@ -151,6 +153,30 @@ final class NewHabitViewController: UIViewController, UITextFieldDelegate {
 		textField.addTarget(self, action: #selector(textFieldDidChange), for: .editingChanged)
 	}
 	
+	override func viewWillAppear(_ animated: Bool) {
+		super.viewWillAppear(animated)
+		
+		if trackerToEdit != nil {
+			loadTrackerDataForEditing()
+		}
+	}
+	
+	private func loadTrackerDataForEditing() {
+		guard let tracker = trackerToEdit else { return }
+		
+		textField.text = tracker.name
+		self.schedule = tracker.schedule ?? []
+		
+		self.selectedEmoji = tracker.emoji
+		self.selectedColor = tracker.color
+		
+		tableView.reloadData()
+		emojiCollectionView.reloadData()
+		colorCollectionView.reloadData()
+		
+		textFieldDidChange()
+	}
+	
 	// MARK: - Actions
 	@objc func textFieldDidChange() {
 		guard let text = textField.text else { return }
@@ -189,20 +215,34 @@ final class NewHabitViewController: UIViewController, UITextFieldDelegate {
 			  let categoryTitle = category
 		else { return }
 		
-		let newTracker = Tracker(
-			id: UUID(),
-			name: text,
-			color: color,
-			emoji: emoji,
-			schedule: schedule
-		)
-		
-		TrackerStore.shared.addNewTracker(newTracker, to: categoryTitle)
-		
-		delegate?.didCreateTracker(newTracker)
+		if let oldTracker = trackerToEdit {
+			let updatedTracker = Tracker(
+				id: oldTracker.id,
+				name: text,
+				color: color,
+				emoji: emoji,
+				schedule: schedule
+			)
+			
+			TrackerStore.shared.updateTracker(updatedTracker, to: categoryTitle)
+			delegate?.didCreateTracker(updatedTracker)
+			
+		} else {
+			let newTracker = Tracker(
+				id: UUID(),
+				name: text,
+				color: color,
+				emoji: emoji,
+				schedule: schedule
+			)
+			
+			TrackerStore.shared.addNewTracker(newTracker, to: categoryTitle)
+			delegate?.didCreateTracker(newTracker)
+		}
 		
 		self.view.window?.rootViewController?.dismiss(animated: true)
 	}
+	
 	
 	// MARK: - Private Methods
 	private func setupViews() {
@@ -282,11 +322,10 @@ final class NewHabitViewController: UIViewController, UITextFieldDelegate {
 	}
 	
 	private func setupNavBar() {
-		title = "Новая привычка"
 		
 		let titleAttributes: [NSAttributedString.Key: Any] = [
 			.font: UIFont.systemFont(ofSize: 16, weight: .medium),
-			.foregroundColor: UIColor(red: 26/255, green: 27/255, blue: 34/255, alpha: 1.0)
+			.foregroundColor: UIColor(named: "YP Black") ?? .label
 		]
 		
 		navigationController?.navigationBar.titleTextAttributes = titleAttributes
@@ -299,7 +338,6 @@ final class NewHabitViewController: UIViewController, UITextFieldDelegate {
 		return schedule.sorted { $0.calendarNumber < $1.calendarNumber }.map { $0.shortName }.joined(separator: ", ")
 	}
 }
-
 // MARK: - CategoriesViewControllerDelegate
 extension NewHabitViewController: CategoriesViewControllerDelegate {
 	func didSelectCategory(_ category: TrackerCategory) {

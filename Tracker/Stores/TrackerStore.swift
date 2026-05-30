@@ -89,6 +89,38 @@ final class TrackerStore: NSObject {
 		}
 	}
 	
+	func updateTracker(_ updatedTracker: Tracker, to categoryTitle: String) {
+		let request = TrackerCoreData.fetchRequest()
+		request.predicate = NSPredicate(format: "id == %@", updatedTracker.id as CVarArg)
+		
+		do {
+			let results = try context.fetch(request)
+			guard let trackerCoreData = results.first else {
+				print("❌ Core Data: Трекер для обновления не найден")
+				return
+			}
+			
+			trackerCoreData.name = updatedTracker.name
+			trackerCoreData.emoji = updatedTracker.emoji
+			trackerCoreData.color = updatedTracker.color.toHexString()
+			trackerCoreData.schedule = updatedTracker.schedule?.map { $0.rawValue } as NSObject?
+			
+			let categoryRequest = TrackerCategoryCoreData.fetchRequest()
+			categoryRequest.predicate = NSPredicate(format: "title == %@", categoryTitle)
+			
+			let categories = try context.fetch(categoryRequest)
+			let categoryCoreData = categories.first ?? TrackerCategoryCoreData(context: context)
+			categoryCoreData.title = categoryTitle
+			
+			trackerCoreData.category = categoryCoreData
+			
+			try context.save()
+			print("✅ Core Data: Трекер \(updatedTracker.name) успешно обновлен")
+		} catch {
+			print("❌ Core Data Error: Не удалось обновить трекер: \(error)")
+		}
+	}
+	
 	func fetchCategories() -> [TrackerCategory] {
 		let request = TrackerCategoryCoreData.fetchRequest()
 		
@@ -106,12 +138,24 @@ final class TrackerStore: NSObject {
 		}
 	}
 	
-	func deleteTracker(at indexPath: IndexPath) throws {
-		let trackerCoreData = fetchedResultsController.object(at: indexPath)
+	func deleteTracker(with id: UUID) throws {
+		let request = TrackerCoreData.fetchRequest()
+		request.predicate = NSPredicate(format: "id == %@", id as CVarArg)
 		
-		context.delete(trackerCoreData)
-		
-		try context.save()
+		do {
+			let results = try context.fetch(request)
+			guard let trackerToDelete = results.first else {
+				print("❌ Core Data: Трекер для удаления не найден в базе")
+				return
+			}
+			
+			context.delete(trackerToDelete)
+			try context.save()
+			print("✅ Core Data: Трекер успешно удален и контекст сохранен")
+		} catch {
+			print("❌ Core Data Error: Не удалось удалить трекер: \(error)")
+			throw error
+		}
 	}
 }
 

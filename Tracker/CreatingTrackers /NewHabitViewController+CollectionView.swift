@@ -67,7 +67,7 @@ extension NewHabitViewController: UITableViewDataSource, UITableViewDelegate {
 			let scheduleVC = ScheduleViewController()
 			scheduleVC.selectedDays = Set(self.schedule)
 			scheduleVC.completion = { [weak self] updatedSchedule in
-				guard let self = self else { return }
+				guard let self else { return }
 				self.schedule = updatedSchedule
 				self.tableView.reloadData()
 			}

@@ -59,20 +59,26 @@ final class SceneDelegate: UIResponder, UIWindowSceneDelegate {
 		let trackersVC = TrackersViewController()
 		let trackersNav = UINavigationController(rootViewController: trackersVC)
 		
-		trackersNav.tabBarItem = UITabBarItem(title: nil, image: UIImage(named: "Tab Bar Item"), tag: 0)
-		trackersNav.tabBarItem.imageInsets = UIEdgeInsets(top: 6, left: 0, bottom: -6, right: 0)
+		trackersNav.tabBarItem = UITabBarItem(
+			title: NSLocalizedString("tab.trackers", comment: ""),
+			image: UIImage(named: "Tab Bar Item"),
+			tag: 0
+		)
 		
 		return trackersNav
 	}
 	
 	private func makeStatisticsViewController() -> UIViewController {
-		let statisticsVC = UIViewController()
-		statisticsVC.view.backgroundColor = .systemBackground
+		let statisticsVC = StatisticsViewController()
+		let statisticsNav = UINavigationController(rootViewController: statisticsVC)
 		
-		statisticsVC.tabBarItem = UITabBarItem(title: nil, image: UIImage(named: "Tab Bar Item2"), tag: 1)
-		statisticsVC.tabBarItem.imageInsets = UIEdgeInsets(top: 6, left: 0, bottom: -6, right: 0)
+		statisticsNav.tabBarItem = UITabBarItem(
+			title: NSLocalizedString("tab.statistics", comment: ""),
+			image: UIImage(named: "Tab Bar Item2"),
+			tag: 1
+		)
 		
-		return statisticsVC
+		return statisticsNav
 	}
 	
 	private func makeTabBarAppearance() -> UITabBarAppearance {

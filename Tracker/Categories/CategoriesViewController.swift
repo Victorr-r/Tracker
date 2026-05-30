@@ -94,7 +94,7 @@ final class CategoriesViewController: UIViewController {
 		}
 		
 		viewModel.selectedCategory.bind { [weak self] category in
-			guard let self = self, let category = category else { return }
+			guard let self, let category = category else { return }
 			self.delegate?.didSelectCategory(category)
 			self.navigationController?.popViewController(animated: true)
 		}
@@ -201,7 +201,7 @@ extension CategoriesViewController: UITableViewDelegate {
 	func tableView(_ tableView: UITableView, contextMenuConfigurationForRowAt indexPath: IndexPath, point: CGPoint) -> UIContextMenuConfiguration? {
 		
 		return UIContextMenuConfiguration(identifier: nil, previewProvider: nil) { [weak self] _ in
-			guard let self = self else { return nil }
+			guard let self else { return nil }
 			
 			let deleteAction = UIAction(
 				title: "Удалить",

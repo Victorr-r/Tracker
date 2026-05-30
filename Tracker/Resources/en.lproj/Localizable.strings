@@ -25,3 +25,10 @@
 
 // Context Menu
 "contextMenu.delete" = "Delete";
+"trackers.filtersButton" = "Filters";
+"statistics.title" = "Statistics";
+"contextMenu.edit" = "Edit";
+"tab.trackers" = "Trackers";
+"tab.statistics" = "Statistics";
+"newHabit.everyDay" = "Every day";
+"common.save" = "Save";

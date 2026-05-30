@@ -25,3 +25,10 @@
 
 // Контекстное меню
 "contextMenu.delete" = "Удалить";
+"statistics.title" = "Статистика";
+"trackers.filtersButton" = "Фильтры";
+"contextMenu.edit" = "Редактировать";
+"tab.trackers" = "Трекеры";
+"tab.statistics" = "Статистика";
+"newHabit.everyDay" = "Каждый день";
+"common.save" = "Сохранить";
