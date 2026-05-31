@@ -45,7 +45,12 @@ final class TrackerCategoryStore: NSObject {
 		controller.delegate = self
 		self.fetchedResultsController = controller
 		
-		try? controller.performFetch()
+		do {
+			try controller.performFetch()
+		} catch {
+			print("❌ TrackerStore: Не удалось выполнить первоначальную загрузку CoreData (performFetch): \(error.localizedDescription)")
+			assertionFailure("CoreData fetch error: \(error)")
+		}
 	}
 	
 	func makeCategory(from categoryCoreData: TrackerCategoryCoreData) throws -> TrackerCategory {

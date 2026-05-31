@@ -1,0 +1,45 @@
+// MARK: - Главный экран трекеров
+"trackers.title" = "Трекеры";
+"trackers.searchPlaceholder" = "Поиск";
+"trackers.placeholder.empty" = "Что будем отслеживать?";
+"trackers.placeholder.nothingFound" = "Ничего не найдено";
+
+// MARK: - Экран категорий
+"categories.title" = "Категория";
+"categories.placeholder.empty" = "Привычки и события можно\nобъединить по смыслу";
+"categories.addButton" = "Добавить категорию";
+
+// MARK: -  Экран создания новой категории
+"newCategory.title" = "Новая категория";
+"newCategory.textFieldPlaceholder" = "Введите название категории";
+"newCategory.readyButton" = "Готово";
+
+// MARK: - Экран создания привычки
+"newHabit.title" = "Новая привычка";
+"newHabit.categoryRow" = "Категория";
+"newHabit.scheduleRow" = "Расписание";
+"newHabit.textFieldPlaceholder" = "Введите название трекера";
+"newHabit.errorLabel" = "Ограничение 38 символов";
+"newHabit.cancelButton" = "Отменить";
+"newHabit.createButton" = "Создать";
+"newHabit.everyDay" = "Каждый день";
+
+// MARK: - Контекстное меню
+"contextMenu.delete" = "Удалить";
+"statistics.title" = "Статистика";
+"trackers.filtersButton" = "Фильтры";
+"contextMenu.edit" = "Редактировать";
+
+// MARK: - Вкладки
+"tab.trackers" = "Трекеры";
+"tab.statistics" = "Статистика";
+
+// MARK: - Общие элементы
+"common.save" = "Сохранить";
+
+// MARK: - Экран фильтров
+"filters.title" = "Фильтры";
+"filter.all" = "Все трекеры";
+"filter.today" = "Трекеры на сегодня";
+"filter.completed" = "Завершённые";
+"filter.uncompleted" = "Не завершённые";

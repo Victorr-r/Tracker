@@ -39,7 +39,12 @@ final class TrackerRecordStore: NSObject {
 		controller.delegate = self
 		self.fetchedResultsController = controller
 		
-		try? controller.performFetch()
+		do {
+			try controller.performFetch()
+		} catch {
+			print("❌ TrackerRecordStore: Не удалось выполнить первоначальную загрузку записей (performFetch): \(error.localizedDescription)")
+			assertionFailure("CoreData performFetch error: \(error)")
+		}
 	}
 	
 	var records: [TrackerRecord] {
@@ -51,20 +56,35 @@ final class TrackerRecordStore: NSObject {
 	}
 	
 	func add(_ record: TrackerRecord) throws {
-		let request = TrackerCoreData.fetchRequest()
+		let request = NSFetchRequest<TrackerCoreData>(entityName: "TrackerCoreData")
+		
 		request.predicate = NSPredicate(format: "id == %@", record.id as CVarArg)
 		
-		guard let trackerCoreData = (try? context.fetch(request))?.first else {
-			print("❌ Ошибка: Трекер с ID \(record.id) не найден")
+		var trackerCoreData: TrackerCoreData? = nil
+		
+		do {
+			trackerCoreData = try context.fetch(request).first
+		} catch {
+			print("❌ TrackerRecordStore: Ошибка извлечения трекера из CoreData: \(error.localizedDescription)")
+			throw error
+		}
+		
+		guard let finalTrackerCoreData = trackerCoreData else {
+			print("⚠️ TrackerRecordStore: Трекер с ID \(record.id) не найден в базе данных для добавления записи")
 			return
 		}
 		
 		let recordCoreData = TrackerRecordCoreData(context: context)
 		recordCoreData.id = record.id
 		recordCoreData.date = record.date
-		recordCoreData.tracker = trackerCoreData
+		recordCoreData.tracker = finalTrackerCoreData
 		
-		try context.save()
+		do {
+			try context.save()
+		} catch {
+			print("❌ TrackerRecordStore: Не удалось сохранить новую запись трекера: \(error.localizedDescription)")
+			throw error
+		}
 	}
 	
 	func remove(_ record: TrackerRecord) throws {
@@ -73,9 +93,16 @@ final class TrackerRecordStore: NSObject {
 										record.id as CVarArg,
 										record.date as NSDate)
 		
-		if let recordToDelete = (try? context.fetch(request))?.first {
-			context.delete(recordToDelete)
-			try context.save()
+		do {
+			if let recordToDelete = try context.fetch(request).first {
+				context.delete(recordToDelete)
+				try context.save()
+			} else {
+				print("⚠️ TrackerRecordStore: Запись для удаления не найдена на дату \(record.date)")
+			}
+		} catch {
+			print("❌ TrackerRecordStore: Ошибка при удалении записи трекера: \(error.localizedDescription)")
+			throw error
 		}
 	}
 }

@@ -47,6 +47,7 @@ final class TrackerCell: UICollectionViewCell {
 	private let daysLabel: UILabel = {
 		let label = UILabel()
 		label.font = .systemFont(ofSize: 12, weight: .medium)
+		label.textColor = UIColor(named: "YP Black") ?? .label
 		label.translatesAutoresizingMaskIntoConstraints = false
 		return label
 	}()
@@ -54,7 +55,6 @@ final class TrackerCell: UICollectionViewCell {
 	private lazy var doneButton: UIButton = {
 		let button = UIButton(type: .custom)
 		button.layer.cornerRadius = 17
-		button.tintColor = .white
 		button.addTarget(self, action: #selector(didTapDoneButton), for: .touchUpInside)
 		button.translatesAutoresizingMaskIntoConstraints = false
 		return button
@@ -69,6 +69,15 @@ final class TrackerCell: UICollectionViewCell {
 	
 	required init?(coder: NSCoder) { fatalError() }
 	
+	// MARK: - Reuse Preparation
+	override func prepareForReuse() {
+		super.prepareForReuse()
+		doneButton.backgroundColor = nil
+		doneButton.tintColor = nil
+		doneButton.setImage(nil, for: .normal)
+		cardView.backgroundColor = nil
+	}
+	
 	// MARK: - Configuration
 	func configure(with tracker: Tracker, isCompleted: Bool, completedDays: Int, indexPath: IndexPath) {
 		self.trackerId = tracker.id
@@ -77,8 +86,6 @@ final class TrackerCell: UICollectionViewCell {
 		titleLabel.text = tracker.name
 		emojiLabel.text = tracker.emoji
 		cardView.backgroundColor = tracker.color
-		doneButton.tintColor = tracker.color
-		doneButton.backgroundColor = .white
 		
 		updateCompletion(isCompleted: isCompleted, completedDays: completedDays)
 	}
@@ -92,19 +99,27 @@ final class TrackerCell: UICollectionViewCell {
 		
 		doneButton.setImage(image, for: .normal)
 		doneButton.alpha = isCompleted ? 0.3 : 1.0
+		
+		if isCompleted {
+			doneButton.backgroundColor = cardView.backgroundColor?.withAlphaComponent(0.3)
+			doneButton.tintColor = cardView.backgroundColor
+		} else {
+			doneButton.tintColor = cardView.backgroundColor
+			
+			if #available(iOS 13.0, *) {
+				doneButton.backgroundColor = UIColor { traitCollection in
+					return traitCollection.userInterfaceStyle == .dark ? .black : .white
+				}
+			} else {
+				doneButton.backgroundColor = .white
+			}
+		}
 	}
 	
 	// MARK: - Logic
 	private func formatDays(_ count: Int) -> String {
-		let remainder10 = count % 10
-		let remainder100 = count % 100
-		if remainder10 == 1 && remainder100 != 11 {
-			return "\(count) день"
-		} else if remainder10 >= 2 && remainder10 <= 4 && (remainder100 < 10 || remainder100 >= 20) {
-			return "\(count) дня"
-		} else {
-			return "\(count) дней"
-		}
+		let formatString = NSLocalizedString("numberOfDays", comment: "Счетчик количества дней выполнения трекера")
+		return String.localizedStringWithFormat(formatString, count)
 	}
 	
 	@objc private func didTapDoneButton() {

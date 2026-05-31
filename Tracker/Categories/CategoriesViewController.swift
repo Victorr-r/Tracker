@@ -32,7 +32,7 @@ final class CategoriesViewController: UIViewController {
 	
 	private let placeholderLabel: UILabel = {
 		let label = UILabel()
-		label.text = "Привычки и события можно\nобъединить по смыслу"
+		label.text = NSLocalizedString("categories.placeholder.empty", comment: "")
 		label.font = .systemFont(ofSize: 12, weight: .medium)
 		label.textColor = UIColor(red: 26/255, green: 27/255, blue: 34/255, alpha: 1.0)
 		label.textAlignment = .center
@@ -44,7 +44,7 @@ final class CategoriesViewController: UIViewController {
 	private lazy var addCategoryButton: UIButton = {
 		let button = UIButton(type: .system)
 		button.backgroundColor = UIColor(red: 26/255, green: 27/255, blue: 34/255, alpha: 1.0)
-		button.setTitle("Добавить категорию", for: .normal)
+		button.setTitle(NSLocalizedString("categories.addButton", comment: ""), for: .normal)
 		button.setTitleColor(.white, for: .normal)
 		button.titleLabel?.font = .systemFont(ofSize: 16, weight: .medium)
 		button.layer.cornerRadius = 16
@@ -75,7 +75,7 @@ final class CategoriesViewController: UIViewController {
 	
 	// MARK: - Private Methods
 	private func setupUI() {
-		title = "Категория"
+		title = NSLocalizedString("categories.title", comment: "")
 		view.backgroundColor = .white
 		navigationItem.hidesBackButton = true
 		
@@ -94,7 +94,7 @@ final class CategoriesViewController: UIViewController {
 		}
 		
 		viewModel.selectedCategory.bind { [weak self] category in
-			guard let self = self, let category = category else { return }
+			guard let self, let category = category else { return }
 			self.delegate?.didSelectCategory(category)
 			self.navigationController?.popViewController(animated: true)
 		}
@@ -201,7 +201,7 @@ extension CategoriesViewController: UITableViewDelegate {
 	func tableView(_ tableView: UITableView, contextMenuConfigurationForRowAt indexPath: IndexPath, point: CGPoint) -> UIContextMenuConfiguration? {
 		
 		return UIContextMenuConfiguration(identifier: nil, previewProvider: nil) { [weak self] _ in
-			guard let self = self else { return nil }
+			guard let self else { return nil }
 			
 			let deleteAction = UIAction(
 				title: "Удалить",

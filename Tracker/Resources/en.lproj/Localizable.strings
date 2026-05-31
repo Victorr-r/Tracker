@@ -1,0 +1,45 @@
+// MARK: - Main Trackers Screen
+"trackers.searchPlaceholder" = "Search";
+"trackers.placeholder.empty" = "What will we track?";
+"trackers.placeholder.nothingFound" = "Nothing found";
+
+// MARK: - Categories Screen
+"categories.title" = "Category";
+"categories.placeholder.empty" = "Habits and events can be\ncombined in meaning";
+"categories.addButton" = "Add category";
+
+// MARK: - New Category Screen
+"newCategory.title" = "New category";
+"newCategory.textFieldPlaceholder" = "Enter category name";
+"newCategory.readyButton" = "Ready";
+
+// MARK: - New Habit Screen
+"newHabit.title" = "New habit";
+"newHabit.categoryRow" = "Category";
+"newHabit.scheduleRow" = "Schedule";
+"newHabit.textFieldPlaceholder" = "Enter tracker name";
+"newHabit.errorLabel" = "38 character limit";
+"newHabit.cancelButton" = "Cancel";
+"newHabit.createButton" = "Create";
+"newHabit.everyDay" = "Every day";
+
+// MARK: - Context Menu
+"contextMenu.delete" = "Delete";
+"trackers.filtersButton" = "Filters";
+"statistics.title" = "Statistics";
+"contextMenu.edit" = "Edit";
+
+// MARK: - Tab Bar
+"tab.trackers" = "Trackers";
+"tab.statistics" = "Statistics";
+
+
+// MARK: - Common
+"common.save" = "Save";
+
+// MARK: - Filters Screen
+"filters.title" = "Filters";
+"filter.all" = "All trackers";
+"filter.today" = "Trackers for today";
+"filter.completed" = "Completed";
+"filter.uncompleted" = "Uncompleted";
