@@ -37,7 +37,8 @@ final class FiltersViewController: UIViewController {
 	override func viewDidLoad() {
 		super.viewDidLoad()
 		view.backgroundColor = UIColor(named: "YP White") ?? .systemBackground
-		title = "Фильтры"
+		
+		title = NSLocalizedString("filters.title", comment: "Заголовок экрана фильтров")
 		
 		setupUI()
 	}
@@ -68,7 +69,8 @@ extension FiltersViewController: UITableViewDataSource, UITableViewDelegate {
 		let cell = tableView.dequeueReusableCell(withIdentifier: "FilterCell", for: indexPath)
 		let filter = filters[indexPath.row]
 		
-		cell.textLabel?.text = filter.rawValue
+		// Использование вычисляемого свойства title вместо rawValue
+		cell.textLabel?.text = filter.title
 		cell.textLabel?.font = .systemFont(ofSize: 17, weight: .regular)
 		cell.backgroundColor = .clear
 		cell.selectionStyle = .none

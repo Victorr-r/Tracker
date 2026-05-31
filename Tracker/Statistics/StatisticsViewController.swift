@@ -41,30 +41,49 @@ final class StatisticsViewController: UIViewController {
 	// MARK: - Lifecycle
 	override func viewDidLoad() {
 		super.viewDidLoad()
-		view.backgroundColor = UIColor(named: "YP White") ?? .systemBackground
-		
-		navigationController?.setNavigationBarHidden(true, animated: false)
-		
-		trackerRecordStore.delegate = self
-		
-		setupLayout()
-		setupTitleLabel()
-		setupPlaceholder()
-		setupTableView()
-		
-		updateStatistics()
+		setupUI()
+		setupDelegates()
+		loadData()
 	}
 	
 	override func viewWillAppear(_ animated: Bool) {
 		super.viewWillAppear(animated)
 		updateStatistics()
+		tableView.reloadData()
 	}
 	
 	// MARK: - Setup UI
+	private func setupUI() {
+		view.backgroundColor = UIColor(named: "YP White") ?? .systemBackground
+		navigationController?.setNavigationBarHidden(true, animated: false)
+		
+		setupLayout()
+	}
+	
+	private func setupDelegates() {
+		trackerRecordStore.delegate = self
+	}
+	
+	private func loadData() {
+		updateStatistics()
+	}
+	
 	private func setupLayout() {
+		placeholderLabel.text = "Анализировать пока нечего"
+		placeholderLabel.textColor = UIColor { traitCollection in
+			return traitCollection.userInterfaceStyle == .dark ? .white : UIColor(red: 26/255, green: 27/255, blue: 34/255, alpha: 1.0)
+		}
+		placeholderLabel.font = .systemFont(ofSize: 12, weight: .medium)
+		placeholderLabel.textAlignment = .center
+		
 		view.addSubview(topNavView)
 		topNavView.addSubview(titleLabel)
 		view.addSubview(tableView)
+		
+		[placeholderImageView, placeholderLabel].forEach {
+			$0.translatesAutoresizingMaskIntoConstraints = false
+			view.addSubview($0)
+		}
 		
 		NSLayoutConstraint.activate([
 			topNavView.topAnchor.constraint(equalTo: view.topAnchor),
@@ -78,46 +97,10 @@ final class StatisticsViewController: UIViewController {
 			titleLabel.heightAnchor.constraint(equalToConstant: 41),
 			
 			tableView.topAnchor.constraint(equalTo: topNavView.bottomAnchor, constant: 18),
-			tableView.leadingAnchor.constraint(equalTo: view.leadingAnchor),
-			tableView.trailingAnchor.constraint(equalTo: view.trailingAnchor),
-			tableView.heightAnchor.constraint(equalToConstant: 408)
-		])
-	}
-	
-	private func setupTitleLabel() {
-		view.addSubview(titleLabel)
-		NSLayoutConstraint.activate([
-			titleLabel.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 16),
-			titleLabel.topAnchor.constraint(equalTo: view.topAnchor, constant: 88),
-			titleLabel.widthAnchor.constraint(equalToConstant: 254),
-			titleLabel.heightAnchor.constraint(equalToConstant: 41)
-		])
-	}
-	
-	private func setupTableView() {
-		view.addSubview(tableView)
-		NSLayoutConstraint.activate([
-			tableView.topAnchor.constraint(equalTo: titleLabel.bottomAnchor, constant: 77),
 			tableView.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 16),
 			tableView.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -16),
-			tableView.heightAnchor.constraint(equalToConstant: 416)
-		])
-	}
-	
-	private func setupPlaceholder() {
-		placeholderLabel.text = "Анализировать пока нечего"
-		placeholderLabel.textColor = UIColor { traitCollection in
-			return traitCollection.userInterfaceStyle == .dark ? .white : UIColor(red: 26/255, green: 27/255, blue: 34/255, alpha: 1.0)
-		}
-		placeholderLabel.font = .systemFont(ofSize: 12, weight: .medium)
-		placeholderLabel.textAlignment = .center
-		
-		[placeholderImageView, placeholderLabel].forEach {
-			$0.translatesAutoresizingMaskIntoConstraints = false
-			view.addSubview($0)
-		}
-		
-		NSLayoutConstraint.activate([
+			tableView.heightAnchor.constraint(equalToConstant: 408),
+			
 			placeholderImageView.centerXAnchor.constraint(equalTo: view.centerXAnchor),
 			placeholderImageView.centerYAnchor.constraint(equalTo: view.centerYAnchor),
 			placeholderImageView.widthAnchor.constraint(equalToConstant: 80),
@@ -155,7 +138,7 @@ extension StatisticsViewController: UITableViewDataSource, UITableViewDelegate {
 	}
 	
 	func tableView(_ tableView: UITableView, heightForRowAt indexPath: IndexPath) -> CGFloat {
-		return 90 + 12
+		return 102
 	}
 	
 	func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
@@ -184,7 +167,6 @@ extension StatisticsViewController: UITableViewDataSource, UITableViewDelegate {
 		}
 		
 		cell.configure(value: value, title: title)
-		cell.layoutIfNeeded()
 		return cell
 	}
 }

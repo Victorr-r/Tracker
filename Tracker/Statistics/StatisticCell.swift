@@ -2,7 +2,7 @@ import UIKit
 
 final class StatisticCell: UITableViewCell {
 	
-	static let identifier = "TrackerCell"
+	static let identifier = "StatisticCell"
 	
 	// MARK: - UI Elements
 	private let containerView: UIView = {
@@ -43,16 +43,33 @@ final class StatisticCell: UITableViewCell {
 		
 		setupViews()
 		setupConstraints()
+		setupGradient()
 	}
 	
 	required init?(coder: NSCoder) { fatalError() }
 	
-	// MARK: - Главное исправление: Отрисовка в draw(_:)
-	override func draw(_ rect: CGRect) {
-		super.draw(rect)
+	// MARK: - Lifecycle
+	override func layoutSubviews() {
+		super.layoutSubviews()
+		
+		if containerView.bounds.width == 0 {
+			containerView.layoutIfNeeded()
+		}
 		
 		gradientLayer.frame = containerView.bounds
 		
+		let halfWidth: CGFloat = 1.0 / 2.0
+		let insetBounds = containerView.bounds.insetBy(dx: halfWidth, dy: halfWidth)
+		let path = UIBezierPath(roundedRect: insetBounds, cornerRadius: 16 - halfWidth)
+		
+		CATransaction.begin()
+		CATransaction.setDisableActions(true)
+		maskLayer.path = path.cgPath
+		CATransaction.commit()
+	}
+	
+	// MARK: - Setup Gradient
+	private func setupGradient() {
 		gradientLayer.colors = [
 			UIColor(red: 0/255, green: 123/255, blue: 250/255, alpha: 1.0).cgColor,
 			UIColor(red: 70/255, green: 230/255, blue: 157/255, alpha: 1.0).cgColor,
@@ -61,24 +78,20 @@ final class StatisticCell: UITableViewCell {
 		gradientLayer.startPoint = CGPoint(x: 0.0, y: 0.5)
 		gradientLayer.endPoint = CGPoint(x: 1.0, y: 0.5)
 		
-		let path = UIBezierPath(roundedRect: containerView.bounds, cornerRadius: 16)
-		maskLayer.path = path.cgPath
-		maskLayer.fillColor = nil
-		maskLayer.strokeColor = UIColor.black.cgColor
-		maskLayer.lineWidth = 1
+		// Настройка маски-обводки
+		maskLayer.fillColor = UIColor.clear.cgColor // Внутри рамки ничего не красим
+		maskLayer.strokeColor = UIColor.black.cgColor // Цвет линии (любой непрозрачный, он просто открывает видимость градиенту)
+		maskLayer.lineWidth = 1.0 // Фиксированная толщина рамки по ТЗ
 		
+		// Применяем маску и добавляем слой в контейнер
 		gradientLayer.mask = maskLayer
-		
-		if gradientLayer.superlayer == nil {
-			containerView.layer.insertSublayer(gradientLayer, at: 0)
-		}
+		containerView.layer.insertSublayer(gradientLayer, at: 0)
 	}
 	
 	// MARK: - Configuration
 	func configure(value: String, title: String) {
 		valueLabel.text = value
 		titleLabel.text = title
-		setNeedsDisplay()
 	}
 	
 	// MARK: - Setup UI

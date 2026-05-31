@@ -196,120 +196,123 @@ final class TrackersViewController: UIViewController {
 	
 	// MARK: - Logic
 	private func reloadVisibleCategories() {
-		self.completedTrackers = trackerRecordStore.records
-		self.categories = TrackerStore.shared.fetchCategories()
-		
-		let calendar = Calendar.current
-		let filterWeekday = calendar.component(.weekday, from: currentDate)
-		let filterText = (navigationItem.searchController?.searchBar.text ?? "").lowercased()
-		
-		let totalTrackersForDay = categories.flatMap { $0.trackers }.filter { tracker in
-			return tracker.schedule?.contains { $0.calendarNumber == filterWeekday } ?? false
-		}
-		
-		filtersButton.isHidden = totalTrackersForDay.isEmpty
-		
-		visibleCategories = categories.compactMap { category in
-			let trackers = category.trackers.filter { tracker in
-				let textCondition = filterText.isEmpty || tracker.name.lowercased().contains(filterText)
-				
-				let dateCondition = tracker.schedule?.contains { (weekday: WeekDay) in
-					weekday.calendarNumber == filterWeekday
-				} ?? false
-				
-				let isCompleted = isTrackerCompletedToday(id: tracker.id)
-				var statusCondition = true
-				
-				if selectedFilter == .completed {
-					statusCondition = isCompleted
-				} else if selectedFilter == .uncompleted {
-					statusCondition = !isCompleted
+			self.completedTrackers = trackerRecordStore.records
+			self.categories = TrackerStore.shared.fetchCategories()
+			
+			let calendar = Calendar.current
+			let filterWeekday = calendar.component(.weekday, from: currentDate)
+			let filterText = (navigationItem.searchController?.searchBar.text ?? "").lowercased()
+			
+			visibleCategories = categories.compactMap { category in
+				let filteredTrackers = category.trackers.filter { tracker in
+					shouldShow(tracker, weekday: filterWeekday, searchText: filterText)
 				}
 				
-				return textCondition && dateCondition && statusCondition
+				if filteredTrackers.isEmpty { return nil }
+				return TrackerCategory(title: category.title, trackers: filteredTrackers)
 			}
-			if trackers.isEmpty { return nil }
-			return TrackerCategory(title: category.title, trackers: trackers)
+			
+			updateFiltersButtonState(weekday: filterWeekday)
+			collectionView.reloadData()
+			reloadPlaceholder()
 		}
 		
-		if selectedFilter == .completed || selectedFilter == .uncompleted {
-			filtersButton.setTitleColor(.systemRed, for: .normal)
-		} else {
-			filtersButton.setTitleColor(.white, for: .normal)
+		private func shouldShow(_ tracker: Tracker, weekday: Int, searchText: String) -> Bool {
+			let textCondition = searchText.isEmpty || tracker.name.lowercased().contains(searchText)
+			
+			let dateCondition = tracker.schedule?.contains { $0.calendarNumber == weekday } ?? false
+			
+			let isCompleted = isTrackerCompletedToday(id: tracker.id)
+			var statusCondition = true
+			
+			if selectedFilter == .completed {
+				statusCondition = isCompleted
+			} else if selectedFilter == .uncompleted {
+				statusCondition = !isCompleted
+			}
+			
+			return textCondition && dateCondition && statusCondition
 		}
 		
-		collectionView.reloadData()
-		reloadPlaceholder()
-	}
-	
-	private func deleteTracker(at indexPath: IndexPath) {
+		private func updateFiltersButtonState(weekday: Int) {
+			let totalTrackersForDay = categories.flatMap { $0.trackers }.filter { tracker in
+				return tracker.schedule?.contains { $0.calendarNumber == weekday } ?? false
+			}
+			filtersButton.isHidden = totalTrackersForDay.isEmpty
+			
+			if selectedFilter == .completed || selectedFilter == .uncompleted {
+				filtersButton.setTitleColor(.systemRed, for: .normal)
+			} else {
+				filtersButton.setTitleColor(.white, for: .normal)
+			}
+		}
+		
+		private func deleteTracker(at indexPath: IndexPath) {
 			let tracker = visibleCategories[indexPath.section].trackers[indexPath.row]
 			
 			do {
 				try TrackerStore.shared.deleteTracker(with: tracker.id)
-				
 				reloadVisibleCategories()
 			} catch {
 				print("Ошибка удаления: \(error)")
 			}
 		}
-	
-	private func editTracker(at indexPath: IndexPath) {
-		let tracker = visibleCategories[indexPath.section].trackers[indexPath.row]
-		let categoryTitle = visibleCategories[indexPath.section].title
 		
-		let editHabitVC = NewHabitViewController()
-		
-		editHabitVC.trackerToEdit = tracker
-		editHabitVC.category = categoryTitle
-		editHabitVC.delegate = self
-		
-		let navVC = UINavigationController(rootViewController: editHabitVC)
-		present(navVC, animated: true)
-	}
-	
-	private func reloadPlaceholder() {
-		if visibleCategories.isEmpty {
-			placeholderImageView.isHidden = false
-			placeholderLabel.isHidden = false
+		private func editTracker(at indexPath: IndexPath) {
+			let tracker = visibleCategories[indexPath.section].trackers[indexPath.row]
+			let categoryTitle = visibleCategories[indexPath.section].title
 			
-			let isSearchActive = !(navigationItem.searchController?.searchBar.text?.isEmpty ?? true)
+			let editHabitVC = NewHabitViewController()
+			editHabitVC.trackerToEdit = tracker
+			editHabitVC.category = categoryTitle
+			editHabitVC.delegate = self
 			
-			if isSearchActive || selectedFilter == .completed || selectedFilter == .uncompleted {
-				placeholderImageView.image = UIImage(named: "Error 2")
-				placeholderLabel.text = NSLocalizedString("trackers.placeholder.nothingFound", comment: "")
+			let navVC = UINavigationController(rootViewController: editHabitVC)
+			present(navVC, animated: true)
+		}
+		
+		private func reloadPlaceholder() {
+			if visibleCategories.isEmpty {
+				placeholderImageView.isHidden = false
+				placeholderLabel.isHidden = false
+				
+				let isSearchActive = !(navigationItem.searchController?.searchBar.text?.isEmpty ?? true)
+				
+				if isSearchActive || selectedFilter == .completed || selectedFilter == .uncompleted {
+					placeholderImageView.image = UIImage(named: "Error 2")
+					placeholderLabel.text = NSLocalizedString("trackers.placeholder.nothingFound", comment: "")
+				} else {
+					placeholderImageView.image = UIImage(named: "Error")
+					placeholderLabel.text = NSLocalizedString("trackers.placeholder.empty", comment: "")
+				}
+				
+				view.bringSubviewToFront(placeholderImageView)
+				view.bringSubviewToFront(placeholderLabel)
 			} else {
-				placeholderImageView.image = UIImage(named: "Error")
-				placeholderLabel.text = NSLocalizedString("trackers.placeholder.empty", comment: "")				}
-			
-			view.bringSubviewToFront(placeholderImageView)
-			view.bringSubviewToFront(placeholderLabel)
-		} else {
-			placeholderImageView.isHidden = true
-			placeholderLabel.isHidden = true
-			
-			view.bringSubviewToFront(filtersButton)
+				placeholderImageView.isHidden = true
+				placeholderLabel.isHidden = true
+				
+				view.bringSubviewToFront(filtersButton)
+			}
 		}
-	}
-	
-	private func markTrackerAsCompleted(id: UUID) {
-		let record = TrackerRecord(id: id, date: currentDate)
-		try? trackerRecordStore.add(record)
-		self.completedTrackers = trackerRecordStore.records
-	}
-	
-	private func unmarkTrackerAsCompleted(id: UUID) {
-		let record = TrackerRecord(id: id, date: currentDate)
-		try? trackerRecordStore.remove(record)
-		self.completedTrackers = trackerRecordStore.records
-	}
-	
-	private func isTrackerCompletedToday(id: UUID) -> Bool {
-		completedTrackers.contains { record in
-			record.id == id && Calendar.current.isDate(record.date, inSameDayAs: currentDate)
+		
+		private func markTrackerAsCompleted(id: UUID) {
+			let record = TrackerRecord(id: id, date: currentDate)
+			try? trackerRecordStore.add(record)
+			self.completedTrackers = trackerRecordStore.records
 		}
-	}
-	
+		
+		private func unmarkTrackerAsCompleted(id: UUID) {
+			let record = TrackerRecord(id: id, date: currentDate)
+			try? trackerRecordStore.remove(record)
+			self.completedTrackers = trackerRecordStore.records
+		}
+		
+		private func isTrackerCompletedToday(id: UUID) -> Bool {
+			completedTrackers.contains { record in
+				record.id == id && Calendar.current.isDate(record.date, inSameDayAs: currentDate)
+			}
+		}
 	// MARK: - Actions
 	@objc private func didTapAddButton() {
 		AnalyticsService.shared.report(event: .click, screen: .main, item: .addTrack)
@@ -427,12 +430,7 @@ extension TrackersViewController: TrackerCellDelegate {
 			markTrackerAsCompleted(id: id)
 		}
 		
-		if let cell = collectionView.cellForItem(at: indexPath) as? TrackerCell {
-			let isCompleted = isTrackerCompletedToday(id: id)
-			let completedDays = completedTrackers.filter { $0.id == id }.count
-			
-			cell.updateCompletion(isCompleted: isCompleted, completedDays: completedDays)
-		}
+		reloadVisibleCategories()
 	}
 }
 // MARK: - TrackersViewControllerDelegate
